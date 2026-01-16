@@ -98,6 +98,22 @@ To streamline the equipment financing process by creating an intuitive, modern p
 - [x] Login and Sign Up CTAs
 - [x] Professional footer
 - [x] Orange/charcoal brand theming
+- [x] Animated hero with floating orbs and gradient effects
+- [x] VendorBuddy mascot logo integrated
+
+#### Static Pages (Pending)
+Create content pages linked from footer:
+- [ ] `/security` - Security practices & compliance info
+- [ ] `/roadmap` - Product roadmap & upcoming features
+- [ ] `/about` - About VendorBuddy / company story
+- [ ] `/privacy` - Privacy Policy
+- [ ] `/terms` - Terms of Service
+- [ ] `/cookies` - Cookie Policy
+
+Footer cleanup:
+- [ ] Remove Blog link
+- [ ] Remove Careers link
+- [ ] Remove GDPR link
 
 #### Authentication
 - [x] Broker registration flow
