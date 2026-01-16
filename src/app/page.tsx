@@ -33,53 +33,74 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        {/* Animated gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#111827] via-[#1F2937] to-[#111827] animate-gradient-shift"></div>
+
+        {/* Animated grid pattern overlay */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 bg-grid-pattern animate-grid-flow"></div>
+        </div>
+
+        {/* Floating animated orbs */}
+        <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-[#F97316] to-[#EA580C] rounded-full blur-3xl opacity-30 animate-float-slow"></div>
+        <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-br from-[#EA580C] to-[#F97316] rounded-full blur-3xl opacity-20 animate-float-delayed"></div>
+        <div className="absolute bottom-20 left-1/4 w-72 h-72 bg-gradient-to-br from-[#F97316] to-[#EA580C] rounded-full blur-3xl opacity-25 animate-pulse-slow"></div>
+
+        {/* Geometric floating shapes */}
+        <div className="absolute top-32 right-1/4 w-16 h-16 border-2 border-[#F97316] rotate-45 animate-spin-slow opacity-40"></div>
+        <div className="absolute bottom-32 left-1/3 w-12 h-12 bg-[#F97316]/20 rounded-lg animate-float-reverse"></div>
+        <div className="absolute top-1/2 right-12 w-20 h-20 border-2 border-[#EA580C] rounded-full animate-pulse-glow opacity-50"></div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FED7AA]/30 border border-[#F97316]/20 rounded-full mb-6">
-              <div className="w-2 h-2 bg-[#F97316] rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-[#EA580C]">Your Complete Vendor Management Solution</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#F97316]/20 border border-[#F97316]/40 rounded-full mb-6 backdrop-blur-sm animate-fade-in-up shadow-lg shadow-[#F97316]/20">
+              <div className="w-2 h-2 bg-[#F97316] rounded-full animate-pulse-fast"></div>
+              <span className="text-sm font-medium text-[#FED7AA]">Your Complete Vendor Management Solution</span>
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-[#111827] mb-6 leading-tight">
-              Streamline Your
-              <span className="block bg-gradient-to-r from-[#F97316] to-[#EA580C] text-transparent bg-clip-text">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight animate-fade-in-up animation-delay-100">
+              <span className="text-white">Streamline Your</span>
+              <span className="block bg-gradient-to-r from-[#F97316] via-[#FB923C] to-[#EA580C] text-transparent bg-clip-text animate-gradient-text bg-300% mt-2">
                 Vendor Operations
               </span>
             </h1>
 
-            <p className="text-xl text-[#4B5563] mb-10 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-xl text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto animate-fade-in-up animation-delay-200">
               Manage vendors, track performance, and optimize your supply chain with powerful tools designed for modern businesses.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animation-delay-300">
               <Link
                 href="/register"
-                className="group px-8 py-4 bg-[#F97316] hover:bg-[#EA580C] text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2 w-full sm:w-auto justify-center"
+                className="group px-8 py-4 bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F97316] text-white font-semibold rounded-xl transition-all shadow-lg shadow-[#F97316]/50 hover:shadow-xl hover:shadow-[#F97316]/60 hover:scale-105 active:scale-95 flex items-center gap-2 w-full sm:w-auto justify-center animate-glow-pulse"
               >
                 Get Started Free
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 href="/login"
-                className="px-8 py-4 bg-white hover:bg-gray-50 text-[#1F2937] font-semibold rounded-xl border-2 border-gray-200 transition-all shadow-sm hover:shadow-md hover:border-[#F97316]/30 w-full sm:w-auto text-center"
+                className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border-2 border-white/20 hover:border-[#F97316]/60 transition-all shadow-sm hover:shadow-md backdrop-blur-sm w-full sm:w-auto text-center"
               >
                 Login to Dashboard
               </Link>
             </div>
 
-            <div className="mt-12 flex items-center justify-center gap-8 text-sm text-[#4B5563]">
-              <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-[#F97316]" />
+            <div className="mt-12 flex items-center justify-center gap-8 text-sm text-gray-300 animate-fade-in-up animation-delay-400">
+              <div className="flex items-center gap-2 group">
+                <Shield className="w-5 h-5 text-[#F97316] group-hover:scale-110 transition-transform" />
                 <span>Enterprise Security</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-[#F97316]" />
+              <div className="flex items-center gap-2 group">
+                <Clock className="w-5 h-5 text-[#F97316] group-hover:scale-110 transition-transform" />
                 <span>24/7 Support</span>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Bottom gradient fade to white */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent"></div>
       </section>
 
       {/* Features Section */}
