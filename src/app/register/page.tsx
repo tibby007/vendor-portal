@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2 } from 'lucide-react'
+import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { validatePassword, getPasswordRequirements } from '@/lib/validation'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -42,8 +43,9 @@ export default function RegisterPage() {
       return
     }
 
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters')
+    const passwordValidation = validatePassword(formData.password)
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.error)
       return
     }
 
@@ -183,12 +185,32 @@ export default function RegisterPage() {
                 id="password"
                 name="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="••••••••••••"
                 value={formData.password}
                 onChange={handleChange}
                 required
                 disabled={loading}
               />
+              {formData.password && (
+                <div className="text-xs space-y-1 mt-2">
+                  {getPasswordRequirements().map((req, idx) => {
+                    const checks = [
+                      formData.password.length >= 12,
+                      /[a-z]/.test(formData.password),
+                      /[A-Z]/.test(formData.password),
+                      /[0-9]/.test(formData.password),
+                      /[^a-zA-Z0-9]/.test(formData.password),
+                    ]
+                    const passed = checks[idx]
+                    return (
+                      <div key={req} className={`flex items-center gap-1 ${passed ? 'text-green-600' : 'text-gray-400'}`}>
+                        {passed ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                        <span>{req}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>

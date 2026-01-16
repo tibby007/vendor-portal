@@ -24,27 +24,21 @@ export default async function InvitePage({ params }: InvitePageProps) {
     .eq('token', token)
     .single()
 
-  if (error || !invitation) {
-    notFound()
-  }
+  // Check if invitation is valid (exists, not expired, not used)
+  // Use generic error message to prevent enumeration attacks
+  const isInvalid = error || !invitation
+  const isExpired = invitation && new Date(invitation.expires_at) < new Date()
+  const isUsed = invitation && invitation.status === 'accepted'
 
-  // Check if invitation is expired
-  const isExpired = new Date(invitation.expires_at) < new Date()
-
-  // Check if invitation is already used
-  const isUsed = invitation.status === 'accepted'
-
-  if (isExpired || isUsed) {
+  if (isInvalid || isExpired || isUsed) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {isExpired ? 'Invitation Expired' : 'Invitation Already Used'}
+            Invalid Invitation
           </h1>
           <p className="text-gray-500 mb-4">
-            {isExpired
-              ? 'This invitation link has expired. Please contact your broker for a new invitation.'
-              : 'This invitation has already been used to create an account.'}
+            This invitation link is invalid or has expired. Please contact your broker for a new invitation.
           </p>
           <a
             href="/login"

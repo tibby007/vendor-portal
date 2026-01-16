@@ -38,7 +38,7 @@ export function OwnerInfoForm({ data, onChange }: OwnerInfoFormProps) {
       <Alert>
         <Shield className="h-4 w-4" />
         <AlertDescription>
-          Owner/guarantor information is securely encrypted and only used for credit evaluation purposes.
+          Owner/guarantor information is securely stored and only used for credit evaluation purposes.
         </AlertDescription>
       </Alert>
 
@@ -113,6 +113,7 @@ export function OwnerInfoForm({ data, onChange }: OwnerInfoFormProps) {
           />
         </div>
 
+        {/* SSN collection temporarily disabled pending encryption implementation
         <div className="space-y-2">
           <Label htmlFor="owner_ssn">Social Security Number</Label>
           <Input
@@ -125,7 +126,20 @@ export function OwnerInfoForm({ data, onChange }: OwnerInfoFormProps) {
             autoComplete="off"
           />
           <p className="text-xs text-gray-500">
-            SSN is encrypted and never stored in plain text
+            SSN will be collected securely once encryption is implemented
+          </p>
+        </div>
+        */}
+        <div className="space-y-2">
+          <Label htmlFor="owner_ssn" className="text-gray-400">Social Security Number</Label>
+          <Input
+            id="owner_ssn"
+            placeholder="Will be collected during final review"
+            disabled
+            className="bg-gray-50"
+          />
+          <p className="text-xs text-amber-600">
+            SSN will be collected securely by your broker during the final review process
           </p>
         </div>
       </div>
