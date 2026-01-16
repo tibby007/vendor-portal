@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { ArrowRight, Package, TrendingUp, Users, Shield, Clock, BarChart3 } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRight, TrendingUp, Users, Shield, Clock, BarChart3, Package } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -9,10 +10,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#F97316] to-[#EA580C] rounded-lg flex items-center justify-center">
-                <Package className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-[#111827]">VendorBuddy</span>
+              <Image
+                src="/logo.png"
+                alt="VendorBuddy"
+                width={140}
+                height={40}
+                className="h-10 w-auto"
+                priority
+              />
             </div>
             <nav className="flex items-center gap-3">
               <Link
@@ -220,11 +225,14 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             {/* Brand */}
             <div className="md:col-span-1">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#F97316] to-[#EA580C] rounded-lg flex items-center justify-center">
-                  <Package className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-white">VendorBuddy</span>
+              <div className="mb-4">
+                <Image
+                  src="/logo.png"
+                  alt="VendorBuddy"
+                  width={160}
+                  height={48}
+                  className="h-12 w-auto"
+                />
               </div>
               <p className="text-gray-400 text-sm">
                 Your trusted partner in vendor management and supply chain optimization.
