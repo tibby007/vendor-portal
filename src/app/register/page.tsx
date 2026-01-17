@@ -52,7 +52,7 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      // Sign up the user - profile and broker are created automatically via database trigger
+      // Sign up the user
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -76,12 +76,32 @@ export default function RegisterPage() {
         return
       }
 
-      // Update phone number if provided (trigger doesn't handle this)
-      if (formData.phone) {
-        await supabase
-          .from('profiles')
-          .update({ phone: formData.phone })
-          .eq('id', authData.user.id)
+      // Create profile using SECURITY DEFINER function to bypass RLS
+      const { error: profileError } = await supabase.rpc('create_profile_for_user', {
+        user_id: authData.user.id,
+        user_email: formData.email,
+        user_role: 'broker',
+        user_first_name: formData.firstName,
+        user_last_name: formData.lastName,
+        user_phone: formData.phone || null,
+      })
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError)
+        setError('Failed to create profile')
+        return
+      }
+
+      // Create broker record using SECURITY DEFINER function
+      const { error: brokerError } = await supabase.rpc('create_broker_for_user', {
+        user_profile_id: authData.user.id,
+        broker_company_name: formData.companyName,
+      })
+
+      if (brokerError) {
+        console.error('Broker creation error:', brokerError)
+        setError('Failed to create broker account')
+        return
       }
 
       // Check if email confirmation is required

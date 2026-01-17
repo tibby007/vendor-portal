@@ -80,14 +80,14 @@ export function VendorRegistrationForm({ invitation, brokerName }: VendorRegistr
         return
       }
 
-      // Create profile
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: authData.user.id,
-        email: formData.email,
-        role: 'vendor',
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        phone: formData.phone || null,
+      // Create profile using SECURITY DEFINER function to bypass RLS
+      const { error: profileError } = await supabase.rpc('create_profile_for_user', {
+        user_id: authData.user.id,
+        user_email: formData.email,
+        user_role: 'vendor',
+        user_first_name: formData.firstName,
+        user_last_name: formData.lastName,
+        user_phone: formData.phone || null,
       })
 
       if (profileError) {
