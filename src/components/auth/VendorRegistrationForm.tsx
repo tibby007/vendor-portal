@@ -57,6 +57,9 @@ export function VendorRegistrationForm({ invitation, brokerName }: VendorRegistr
     setLoading(true)
 
     try {
+      // Sign out any existing session first
+      await supabase.auth.signOut()
+
       // Sign up the user
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
