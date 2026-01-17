@@ -47,3 +47,23 @@ $$;
 
 -- Grant execute to authenticated users
 GRANT EXECUTE ON FUNCTION create_broker_for_user TO authenticated;
+
+-- Function to create vendor (bypasses RLS)
+CREATE OR REPLACE FUNCTION create_vendor_for_user(
+  user_profile_id UUID,
+  user_broker_id UUID,
+  vendor_company_name TEXT
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO vendors (profile_id, broker_id, company_name, status)
+  VALUES (user_profile_id, user_broker_id, vendor_company_name, 'active');
+END;
+$$;
+
+-- Grant execute to authenticated users
+GRANT EXECUTE ON FUNCTION create_vendor_for_user TO authenticated;
