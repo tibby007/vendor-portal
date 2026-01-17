@@ -10,6 +10,14 @@ interface MessagesPageProps {
   params: Promise<{ id: string }>
 }
 
+interface Attachment {
+  id: string
+  file_name: string
+  file_path: string
+  file_size: number
+  file_type: string
+}
+
 interface Message {
   id: string
   content: string
@@ -22,6 +30,7 @@ interface Message {
     email: string
     role: string
   }
+  attachments?: Attachment[]
 }
 
 interface Deal {
@@ -123,12 +132,13 @@ export default async function DealMessagesPage({ params }: MessagesPageProps) {
     deal = dealData as unknown as Deal
   }
 
-  // Fetch messages
+  // Fetch messages with attachments
   const { data: messagesData } = await supabase
     .from('messages')
     .select(`
       *,
-      sender:profiles(first_name, last_name, email, role)
+      sender:profiles(first_name, last_name, email, role),
+      attachments:message_attachments(id, file_name, file_path, file_size, file_type)
     `)
     .eq('deal_id', id)
     .order('created_at', { ascending: true })

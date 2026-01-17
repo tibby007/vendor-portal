@@ -10,12 +10,13 @@ import {
   Building,
   User,
   DollarSign,
-  FileText,
   MessageSquare,
   Clock,
   Edit,
 } from 'lucide-react'
 import { DealStageSelector } from '@/components/deals/DealStageSelector'
+import { DocumentSection } from '@/components/deals/DocumentSection'
+import { DealNotes } from '@/components/deals/DealNotes'
 
 interface DealPageProps {
   params: Promise<{ id: string }>
@@ -75,7 +76,9 @@ interface Document {
   file_path: string
   document_category: string
   status: string
+  notes: string | null
   created_at: string
+  reviewed_at: string | null
 }
 
 interface KanbanStage {
@@ -185,7 +188,7 @@ export default async function DealDetailPage({ params }: DealPageProps) {
   // Get documents
   const { data: docsData } = await supabase
     .from('deal_documents')
-    .select('id, file_name, file_path, document_category, status, created_at')
+    .select('id, file_name, file_path, document_category, status, notes, created_at, reviewed_at')
     .eq('deal_id', id)
     .order('created_at', { ascending: false })
 
@@ -222,16 +225,6 @@ export default async function DealDetailPage({ params }: DealPageProps) {
     return colors[stageName] || 'bg-gray-100 text-gray-800'
   }
 
-  const getDocStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      pending: 'bg-gray-100 text-gray-800',
-      reviewed: 'bg-blue-100 text-blue-800',
-      accepted: 'bg-green-100 text-green-800',
-      needs_revision: 'bg-red-100 text-red-800',
-    }
-    return colors[status] || 'bg-gray-100 text-gray-800'
-  }
-
   const entityTypeLabels: Record<string, string> = {
     llc: 'LLC',
     corporation: 'Corporation',
@@ -244,16 +237,6 @@ export default async function DealDetailPage({ params }: DealPageProps) {
     equipment: 'Equipment Financing',
     working_capital: 'Working Capital',
     both: 'Both',
-  }
-
-  const documentCategoryLabels: Record<string, string> = {
-    invoice: 'Invoice/Quote',
-    bank_statements: 'Bank Statements',
-    tax_returns: 'Business Tax Returns',
-    drivers_license: "Driver's License",
-    voided_check: 'Voided Check',
-    financial_statements: 'Financial Statements',
-    other: 'Other',
   }
 
   const backLink = isBroker ? '/dashboard/pipeline' : '/dashboard/deals'
@@ -503,49 +486,14 @@ export default async function DealDetailPage({ params }: DealPageProps) {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Documents */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center">
-                <FileText className="h-5 w-5 mr-2 text-orange-500" />
-                Documents ({documents.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {documents.length === 0 ? (
-                <p className="text-sm text-gray-500">No documents uploaded</p>
-              ) : (
-                <div className="space-y-3">
-                  {documents.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="flex items-center justify-between p-2 bg-gray-50 rounded"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{doc.file_name}</p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className="text-xs text-gray-500">
-                            {documentCategoryLabels[doc.document_category] || doc.document_category}
-                          </span>
-                          <Badge className={`text-xs ${getDocStatusColor(doc.status)}`}>
-                            {doc.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+          <DocumentSection
+            dealId={id}
+            isBroker={isBroker}
+            initialDocuments={documents}
+          />
 
-              {!isBroker && (
-                <Link href={`/dashboard/deals/${id}/edit`}>
-                  <Button variant="outline" size="sm" className="w-full mt-4">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Manage Documents
-                  </Button>
-                </Link>
-              )}
-            </CardContent>
-          </Card>
+          {/* Deal Notes */}
+          <DealNotes dealId={id} isBroker={isBroker} />
         </div>
       </div>
     </div>

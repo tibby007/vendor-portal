@@ -1,10 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { AnalyticsDashboard } from './AnalyticsDashboard'
+import { VendorAnalyticsDashboard } from './VendorAnalyticsDashboard'
 import type { Broker, Deal, Vendor, KanbanStage, ActivityLog } from '@/types/database'
 
 interface DealWithRelations extends Deal {
   vendor: Pick<Vendor, 'id' | 'company_name'>
+  stage: KanbanStage
+}
+
+interface DealWithStage extends Deal {
   stage: KanbanStage
 }
 
@@ -27,10 +32,57 @@ export default async function AnalyticsPage() {
     .eq('id', user.id)
     .single()
 
-  if (!profileData || profileData.role !== 'broker') {
+  if (!profileData) {
     redirect('/dashboard')
   }
 
+  // Handle vendor analytics
+  if (profileData.role === 'vendor') {
+    // Get vendor
+    const { data: vendorData } = await supabase
+      .from('vendors')
+      .select('*')
+      .eq('profile_id', user.id)
+      .single()
+
+    const vendor = vendorData as Vendor | null
+
+    if (!vendor) {
+      redirect('/dashboard')
+    }
+
+    // Get vendor's deals with stage info
+    const { data: dealsData } = await supabase
+      .from('deals')
+      .select(`
+        *,
+        stage:kanban_stages(*)
+      `)
+      .eq('vendor_id', vendor.id)
+      .order('created_at', { ascending: false })
+
+    const deals = (dealsData || []) as unknown as DealWithStage[]
+
+    // Get vendor's activity (limit to 20)
+    const { data: activityData } = await supabase
+      .from('activity_log')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    const activities = (activityData || []) as ActivityLog[]
+
+    return (
+      <VendorAnalyticsDashboard
+        vendor={vendor}
+        deals={deals}
+        activities={activities}
+      />
+    )
+  }
+
+  // Handle broker analytics
   // Get broker
   const { data: brokerData } = await supabase
     .from('brokers')

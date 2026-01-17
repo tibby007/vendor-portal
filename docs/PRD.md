@@ -90,7 +90,7 @@ To streamline the equipment financing process by creating an intuitive, modern p
 
 ## Features & Functionality
 
-### Phase 1: Authentication & Onboarding (Current)
+### Phase 1: Authentication & Onboarding (Complete)
 
 #### Landing Page
 - [x] Hero section with value proposition
@@ -101,19 +101,19 @@ To streamline the equipment financing process by creating an intuitive, modern p
 - [x] Animated hero with floating orbs and gradient effects
 - [x] VendorBuddy mascot logo integrated
 
-#### Static Pages (Pending)
-Create content pages linked from footer:
-- [ ] `/security` - Security practices & compliance info
-- [ ] `/roadmap` - Product roadmap & upcoming features
-- [ ] `/about` - About VendorBuddy / company story
-- [ ] `/privacy` - Privacy Policy
-- [ ] `/terms` - Terms of Service
-- [ ] `/cookies` - Cookie Policy
+#### Static Pages
+Content pages linked from footer:
+- [x] `/security` - Security practices & compliance info
+- [x] `/roadmap` - Product roadmap & upcoming features
+- [x] `/about` - About VendorBuddy / company story
+- [x] `/privacy` - Privacy Policy
+- [x] `/terms` - Terms of Service
+- [x] `/cookies` - Cookie Policy
 
 Footer cleanup:
-- [ ] Remove Blog link
-- [ ] Remove Careers link
-- [ ] Remove GDPR link
+- [x] Remove Blog link
+- [x] Remove Careers link
+- [x] Remove GDPR link
 
 #### Authentication
 - [x] Broker registration flow
@@ -127,82 +127,105 @@ Footer cleanup:
 - [x] Vendor registration via invite links
 - [x] Role-based dashboard routing
 
-### Phase 2: Application Submission & Document Management
+### Phase 2: Application Submission & Document Management (Complete)
 
 #### Deal Creation
-- [ ] Multi-step application form
-- [ ] Business information capture
-- [ ] Owner/guarantor details
-- [ ] Equipment/financing specifics
-- [ ] Auto-save draft functionality
+- [x] Multi-step application form (5-step wizard with progress tracking)
+- [x] Business information capture (legal name, DBA, address, EIN, entity type, industry, revenue)
+- [x] Owner/guarantor details (name, title, ownership %, phone, DOB)
+- [x] Equipment/financing specifics (amount, type, equipment details, preferred terms)
+- [x] Auto-save draft functionality (every 30 seconds)
+- [x] Draft vs submitted deal tracking
+- [x] Edit existing deals while in draft status
 
 #### Document Management
-- [ ] Drag-and-drop file upload
-- [ ] Document type categorization
-- [ ] File preview capabilities
-- [ ] Version history tracking
-- [ ] Secure storage (Supabase Storage)
+- [x] Drag-and-drop file upload with preview
+- [x] Document type categorization (invoice, bank statements, tax returns, driver's license, voided check, financial statements, other)
+- [x] File type validation (PDF, JPG, PNG, DOC, DOCX, XLS, XLSX)
+- [x] File size validation (max 25MB)
+- [x] Document status tracking (pending, reviewed, accepted, needs_revision)
+- [x] Secure storage (Supabase Storage)
+- [x] Document checklist showing required vs optional documents
 
-### Phase 3: Kanban Pipeline & Deal Management
+### Phase 3: Kanban Pipeline & Deal Management (Complete)
 
 #### Pipeline View
-- [ ] Customizable kanban stages
-- [ ] Drag-and-drop deal movement
-- [ ] Stage-based filtering
-- [ ] Quick deal preview cards
+- [x] Customizable kanban stages (9 default stages, configurable per broker)
+- [x] Drag-and-drop deal movement between stages
+- [x] Real-time updates via Supabase subscriptions
+- [x] Deal count badges per stage
+- [x] Quick deal preview cards with business name, vendor, amount, date
+- [x] Stage color coding for visual status
 
 #### Deal Details
-- [ ] Comprehensive deal view
-- [ ] Status history timeline
-- [ ] Document attachment list
-- [ ] Activity log
+- [x] Comprehensive deal view with all business/owner/financing info
+- [x] Document attachment list with status badges
+- [x] Role-based visibility (vendor sees limited info, broker sees all)
+- [x] Vendor information card (for broker view)
+- [x] Activity log (backend implemented)
 
-### Phase 4: Document Review & Broker Tools
+### Phase 4: Document Review & Broker Tools (Complete)
 
 #### Broker Dashboard
-- [ ] Deal queue management
-- [ ] Document review interface
-- [ ] Approval/rejection workflows
-- [ ] Notes and annotations
+- [x] Deal queue management (recent deals, quick actions)
+- [x] Pipeline value and metrics overview
+- [x] Document review interface with accept/reject actions
+- [x] Approval/rejection workflows with notes
+- [x] Deal notes UI (view, add, delete internal notes)
 
 #### Vendor Management
-- [ ] Vendor directory
-- [ ] Performance metrics
-- [ ] Invitation management
-- [ ] Status tracking
+- [x] Vendor directory with status badges
+- [x] Invitation management (create, track pending)
+- [x] Status tracking (active, pending)
+- [x] Vendor performance metrics (deals, funded, volume, conversion rate)
 
-### Phase 5: Messaging System
+### Phase 5: Messaging System (Complete)
 
-- [ ] In-app messaging
-- [ ] Deal-specific threads
-- [ ] File sharing in messages
-- [ ] Email notifications
-- [ ] Read receipts
+- [x] In-app messaging with real-time updates
+- [x] Deal-specific message threads
+- [x] Read receipts with timestamps
+- [x] Unread message counters
+- [x] User avatars with role-based coloring
+- [x] Message composition (Enter to send, Shift+Enter for newline)
+- [x] File attachments in messages (upload, display, download)
+- [x] Email notifications infrastructure (queue table, Edge Function, notification preferences)
 
-### Phase 6: Resources & Content Management
+### Phase 6: Resources & Content Management (Complete)
 
-- [ ] Broker resource library
-- [ ] Document templates
-- [ ] Training materials
-- [ ] Vendor-facing resources
+- [x] Broker resource library with categories
+- [x] Resource creation and editing
+- [x] Publishing workflow (draft vs published)
+- [x] View count tracking
+- [x] Category filtering
+- [x] Vendor-facing resources (published only)
+- [x] Resource detail pages
 
-### Phase 7: Dashboards & Analytics
+### Phase 7: Dashboards & Analytics (Complete)
 
 #### Broker Analytics
-- [ ] Deal volume charts
-- [ ] Conversion metrics
-- [ ] Funding amounts
-- [ ] Vendor performance
-- [ ] Pipeline health
+- [x] Date range filtering (7d, 30d, 90d, 12m, all-time)
+- [x] Deal volume charts (monthly submissions, funded, declined)
+- [x] Conversion metrics and funnel
+- [x] Funding amounts tracking
+- [x] Vendor activity table (top 10 by volume)
+- [x] Pipeline distribution chart
+- [x] Recent activity log
+- [x] Key metrics (total deals, funded deals, volume, average deal size)
 
 #### Vendor Analytics
-- [ ] Submission history
-- [ ] Approval rates
-- [ ] Average funding time
-- [ ] Monthly trends
+- [x] Vendor-specific analytics dashboard
+- [x] Submission history charts
+- [x] Approval rates
+- [x] Average funding time
 
 ### Phase 8: Polish, Testing & Launch
 
+#### Settings & Configuration
+- [x] Profile settings (personal info editing)
+- [x] Company settings (broker-only)
+- [x] Notification preferences (with database persistence)
+
+#### Launch Preparation
 - [ ] End-to-end testing
 - [ ] Performance optimization
 - [ ] Security audit
@@ -216,31 +239,36 @@ Footer cleanup:
 ### Core Tables
 
 ```
-profiles          - User profiles (extends Supabase auth)
-brokers           - Broker company information
-vendors           - Vendor companies (linked to brokers)
-vendor_invitations - Invitation tokens for vendors
+profiles            - User profiles (extends Supabase auth)
+brokers             - Broker company information
+vendors             - Vendor companies (linked to brokers)
+vendor_invitations  - Invitation tokens for vendors
 ```
 
 ### Deal Management
 
 ```
-kanban_stages     - Customizable deal pipeline stages
-deals             - Financing applications
-deal_documents    - Uploaded documents for deals
+kanban_stages       - Customizable deal pipeline stages
+deals               - Financing applications
+deal_documents      - Uploaded documents for deals
+deal_notes          - Internal notes on deals
+activity_log        - Activity tracking for analytics
 ```
 
 ### Communication
 
 ```
-messages          - In-app messaging threads
-notifications     - System notifications
+messages                  - In-app messaging threads
+message_attachments       - File attachments for messages
+notification_preferences  - User email notification settings
+email_notifications_queue - Pending email notifications
 ```
 
 ### Content
 
 ```
-resources         - Broker-managed resource library
+resources           - Broker-managed resource library
+resource_categories - Category management
 ```
 
 ---

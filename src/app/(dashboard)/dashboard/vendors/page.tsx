@@ -4,8 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Plus, Users, Search, Mail, Building, Clock } from 'lucide-react'
+import { Plus, Users, Mail, Building, Clock, TrendingUp, DollarSign, FileText } from 'lucide-react'
 
 export default async function VendorsPage() {
   const supabase = await createClient()
@@ -26,7 +25,7 @@ export default async function VendorsPage() {
     redirect('/dashboard')
   }
 
-  // Get vendors
+  // Get vendors with deal counts
   const { data: vendors } = await supabase
     .from('vendors')
     .select(`
@@ -35,6 +34,33 @@ export default async function VendorsPage() {
     `)
     .eq('broker_id', broker.id)
     .order('created_at', { ascending: false })
+
+  // Get deal metrics for each vendor
+  const { data: dealMetrics } = await supabase
+    .from('deals')
+    .select('vendor_id, amount_requested, stage:kanban_stages(name)')
+    .eq('broker_id', broker.id)
+    .not('submitted_at', 'is', null)
+
+  // Calculate metrics per vendor
+  const vendorMetrics: Record<string, { totalDeals: number; fundedDeals: number; totalVolume: number; fundedVolume: number }> = {}
+
+  if (dealMetrics) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    dealMetrics.forEach((deal: any) => {
+      if (!vendorMetrics[deal.vendor_id]) {
+        vendorMetrics[deal.vendor_id] = { totalDeals: 0, fundedDeals: 0, totalVolume: 0, fundedVolume: 0 }
+      }
+      vendorMetrics[deal.vendor_id].totalDeals++
+      vendorMetrics[deal.vendor_id].totalVolume += Number(deal.amount_requested) || 0
+
+      const stageName = deal.stage?.name
+      if (stageName === 'Funded') {
+        vendorMetrics[deal.vendor_id].fundedDeals++
+        vendorMetrics[deal.vendor_id].fundedVolume += Number(deal.amount_requested) || 0
+      }
+    })
+  }
 
   // Get pending invitations
   const { data: invitations } = await supabase
@@ -63,6 +89,16 @@ export default async function VendorsPage() {
       default:
         return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  const formatCurrency = (amount: number) => {
+    if (amount >= 1000000) {
+      return `$${(amount / 1000000).toFixed(1)}M`
+    }
+    if (amount >= 1000) {
+      return `$${(amount / 1000).toFixed(0)}K`
+    }
+    return `$${amount.toFixed(0)}`
   }
 
   return (
@@ -152,33 +188,78 @@ export default async function VendorsPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {vendors.map((vendor) => (
-                <Link
-                  key={vendor.id}
-                  href={`/dashboard/vendors/${vendor.id}`}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Building className="h-5 w-5 text-blue-600" />
+              {vendors.map((vendor) => {
+                const metrics = vendorMetrics[vendor.id] || { totalDeals: 0, fundedDeals: 0, totalVolume: 0, fundedVolume: 0 }
+                const conversionRate = metrics.totalDeals > 0
+                  ? Math.round((metrics.fundedDeals / metrics.totalDeals) * 100)
+                  : 0
+
+                return (
+                  <Link
+                    key={vendor.id}
+                    href={`/dashboard/vendors/${vendor.id}`}
+                    className="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                          <Building className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{vendor.company_name}</p>
+                          <p className="text-sm text-gray-500">
+                            {vendor.profile?.first_name} {vendor.profile?.last_name} • {vendor.profile?.email}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge className={getStatusColor(vendor.status)}>
+                          {vendor.status.charAt(0).toUpperCase() + vendor.status.slice(1)}
+                        </Badge>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Joined {formatDate(vendor.created_at)}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{vendor.company_name}</p>
-                      <p className="text-sm text-gray-500">
-                        {vendor.profile?.first_name} {vendor.profile?.last_name} • {vendor.profile?.email}
-                      </p>
+
+                    {/* Performance Metrics */}
+                    <div className="grid grid-cols-4 gap-3 pt-3 border-t border-gray-200">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 text-gray-400 mb-1">
+                          <FileText className="h-3 w-3" />
+                          <span className="text-xs">Deals</span>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-900">{metrics.totalDeals}</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 text-gray-400 mb-1">
+                          <TrendingUp className="h-3 w-3" />
+                          <span className="text-xs">Funded</span>
+                        </div>
+                        <p className="text-sm font-semibold text-green-600">{metrics.fundedDeals}</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 text-gray-400 mb-1">
+                          <DollarSign className="h-3 w-3" />
+                          <span className="text-xs">Volume</span>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {metrics.fundedVolume > 0 ? formatCurrency(metrics.fundedVolume) : '-'}
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-1 text-gray-400 mb-1">
+                          <TrendingUp className="h-3 w-3" />
+                          <span className="text-xs">Rate</span>
+                        </div>
+                        <p className={`text-sm font-semibold ${conversionRate >= 50 ? 'text-green-600' : conversionRate > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                          {metrics.totalDeals > 0 ? `${conversionRate}%` : '-'}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge className={getStatusColor(vendor.status)}>
-                      {vendor.status.charAt(0).toUpperCase() + vendor.status.slice(1)}
-                    </Badge>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Joined {formatDate(vendor.created_at)}
-                    </p>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                )
+              })}
             </div>
           )}
         </CardContent>

@@ -251,10 +251,8 @@ export default function Home() {
             <div>
               <h4 className="text-white font-semibold mb-4">Product</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Features</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Pricing</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Security</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Roadmap</a></li>
+                <li><Link href="/security" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Security</Link></li>
+                <li><Link href="/roadmap" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Roadmap</Link></li>
               </ul>
             </div>
 
@@ -262,10 +260,7 @@ export default function Home() {
             <div>
               <h4 className="text-white font-semibold mb-4">Company</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">About Us</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Careers</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Blog</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Contact</a></li>
+                <li><Link href="/about" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">About Us</Link></li>
               </ul>
             </div>
 
@@ -273,10 +268,9 @@ export default function Home() {
             <div>
               <h4 className="text-white font-semibold mb-4">Legal</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Cookie Policy</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">GDPR</a></li>
+                <li><Link href="/privacy" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Terms of Service</Link></li>
+                <li><Link href="/cookies" className="text-gray-400 hover:text-[#F97316] text-sm transition-colors">Cookie Policy</Link></li>
               </ul>
             </div>
           </div>

@@ -5,7 +5,16 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Loader2, Send } from 'lucide-react'
+import { Loader2, Send, Paperclip, X, FileText, Image, File, Download } from 'lucide-react'
+import { toast } from 'sonner'
+
+interface Attachment {
+  id: string
+  file_name: string
+  file_path: string
+  file_size: number
+  file_type: string
+}
 
 interface Message {
   id: string
@@ -19,6 +28,7 @@ interface Message {
     email: string
     role: string
   }
+  attachments?: Attachment[]
 }
 
 interface MessageThreadProps {
@@ -27,11 +37,25 @@ interface MessageThreadProps {
   initialMessages: Message[]
 }
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+const ALLOWED_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+]
+
 export function MessageThread({ dealId, currentUserId, initialMessages }: MessageThreadProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
   // Scroll to bottom when messages change
@@ -52,12 +76,13 @@ export function MessageThread({ dealId, currentUserId, initialMessages }: Messag
           filter: `deal_id=eq.${dealId}`,
         },
         async (payload) => {
-          // Fetch the full message with sender info
+          // Fetch the full message with sender info and attachments
           const { data } = await supabase
             .from('messages')
             .select(`
               *,
-              sender:profiles(first_name, last_name, email, role)
+              sender:profiles(first_name, last_name, email, role),
+              attachments:message_attachments(id, file_name, file_path, file_size, file_type)
             `)
             .eq('id', payload.new.id)
             .single()
@@ -96,25 +121,128 @@ export function MessageThread({ dealId, currentUserId, initialMessages }: Messag
     }
   }, [messages, currentUserId, supabase])
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    const validFiles: File[] = []
+
+    for (const file of files) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`${file.name} is too large. Max size is 10MB.`)
+        continue
+      }
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        toast.error(`${file.name} has an unsupported file type.`)
+        continue
+      }
+      validFiles.push(file)
+    }
+
+    setSelectedFiles((prev) => [...prev, ...validFiles])
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
   const handleSend = async () => {
-    if (!newMessage.trim() || sending) return
+    if ((!newMessage.trim() && selectedFiles.length === 0) || sending) return
 
     setSending(true)
     const messageContent = newMessage.trim()
+    const filesToUpload = [...selectedFiles]
     setNewMessage('')
+    setSelectedFiles([])
 
-    const { error } = await supabase.from('messages').insert({
-      deal_id: dealId,
-      sender_id: currentUserId,
-      content: messageContent,
-    })
+    try {
+      // Create the message first
+      const { data: messageData, error: messageError } = await supabase
+        .from('messages')
+        .insert({
+          deal_id: dealId,
+          sender_id: currentUserId,
+          content: messageContent || '(Attachment)',
+        })
+        .select('id')
+        .single()
 
-    if (error) {
+      if (messageError) throw messageError
+
+      // Upload files and create attachment records
+      if (filesToUpload.length > 0 && messageData) {
+        for (const file of filesToUpload) {
+          const fileExt = file.name.split('.').pop()
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+          const filePath = `${dealId}/messages/${messageData.id}/${fileName}`
+
+          const { error: uploadError } = await supabase.storage
+            .from('deal-documents')
+            .upload(filePath, file)
+
+          if (uploadError) {
+            console.error('Failed to upload file:', uploadError)
+            toast.error(`Failed to upload ${file.name}`)
+            continue
+          }
+
+          // Create attachment record
+          const { error: attachmentError } = await supabase
+            .from('message_attachments')
+            .insert({
+              message_id: messageData.id,
+              file_name: file.name,
+              file_path: filePath,
+              file_size: file.size,
+              file_type: file.type,
+            })
+
+          if (attachmentError) {
+            console.error('Failed to create attachment record:', attachmentError)
+          }
+        }
+      }
+    } catch (error) {
       console.error('Failed to send message:', error)
-      setNewMessage(messageContent) // Restore message on error
+      setNewMessage(messageContent)
+      setSelectedFiles(filesToUpload)
+      toast.error('Failed to send message')
     }
 
     setSending(false)
+  }
+
+  const handleDownloadAttachment = async (attachment: Attachment) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('deal-documents')
+        .createSignedUrl(attachment.file_path, 60)
+
+      if (error) throw error
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank')
+      }
+    } catch (error) {
+      console.error('Error downloading attachment:', error)
+      toast.error('Failed to download attachment')
+    }
+  }
+
+  const getFileIcon = (fileType: string) => {
+    if (fileType.startsWith('image/')) {
+      return <Image className="h-4 w-4" />
+    }
+    if (fileType === 'application/pdf') {
+      return <FileText className="h-4 w-4" />
+    }
+    return <File className="h-4 w-4" />
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -201,7 +329,34 @@ export function MessageThread({ dealId, currentUserId, initialMessages }: Messag
                         : 'bg-gray-100 text-gray-900'
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                    {message.content && message.content !== '(Attachment)' && (
+                      <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                    )}
+                    {/* Attachments */}
+                    {message.attachments && message.attachments.length > 0 && (
+                      <div className={`${message.content && message.content !== '(Attachment)' ? 'mt-2 pt-2 border-t' : ''} ${isOwn ? 'border-blue-500' : 'border-gray-200'}`}>
+                        {message.attachments.map((attachment) => (
+                          <button
+                            key={attachment.id}
+                            onClick={() => handleDownloadAttachment(attachment)}
+                            className={`flex items-center gap-2 p-2 rounded mt-1 w-full text-left transition-colors ${
+                              isOwn
+                                ? 'bg-blue-500 hover:bg-blue-400'
+                                : 'bg-gray-200 hover:bg-gray-300'
+                            }`}
+                          >
+                            {getFileIcon(attachment.file_type)}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium truncate">{attachment.file_name}</p>
+                              <p className={`text-xs ${isOwn ? 'text-blue-200' : 'text-gray-500'}`}>
+                                {formatFileSize(attachment.file_size)}
+                              </p>
+                            </div>
+                            <Download className="h-3 w-3 flex-shrink-0" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -213,7 +368,46 @@ export function MessageThread({ dealId, currentUserId, initialMessages }: Messag
 
       {/* Message Input */}
       <div className="border-t p-4 bg-white">
+        {/* Selected Files Preview */}
+        {selectedFiles.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {selectedFiles.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2"
+              >
+                {getFileIcon(file.type)}
+                <span className="text-sm truncate max-w-[150px]">{file.name}</span>
+                <button
+                  onClick={() => removeFile(index)}
+                  className="text-gray-400 hover:text-red-500"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="flex gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            multiple
+            accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx"
+            className="hidden"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending}
+            title="Attach files"
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
           <Textarea
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
@@ -224,7 +418,7 @@ export function MessageThread({ dealId, currentUserId, initialMessages }: Messag
           />
           <Button
             onClick={handleSend}
-            disabled={!newMessage.trim() || sending}
+            disabled={(!newMessage.trim() && selectedFiles.length === 0) || sending}
             className="h-auto"
           >
             {sending ? (

@@ -1,30 +1,91 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Bell } from 'lucide-react'
+import { Bell, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface NotificationSettingsProps {
   userId: string
 }
 
-export function NotificationSettings({ userId }: NotificationSettingsProps) {
-  const [settings, setSettings] = useState({
-    emailNewDeal: true,
-    emailDealUpdate: true,
-    emailNewMessage: true,
-    emailDocumentUploaded: true,
-    emailWeeklyDigest: false,
-  })
+interface NotificationPreferences {
+  email_new_deal: boolean
+  email_deal_update: boolean
+  email_new_message: boolean
+  email_document_uploaded: boolean
+  email_weekly_digest: boolean
+}
 
-  const handleToggle = (key: keyof typeof settings) => {
-    setSettings((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }))
-    // In a real app, you'd save this to the database
+export function NotificationSettings({ userId }: NotificationSettingsProps) {
+  const [settings, setSettings] = useState<NotificationPreferences>({
+    email_new_deal: true,
+    email_deal_update: true,
+    email_new_message: true,
+    email_document_uploaded: true,
+    email_weekly_digest: false,
+  })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  const supabase = createClient()
+
+  useEffect(() => {
+    async function fetchPreferences() {
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+
+      if (data && !error) {
+        setSettings({
+          email_new_deal: data.email_new_deal,
+          email_deal_update: data.email_deal_update,
+          email_new_message: data.email_new_message,
+          email_document_uploaded: data.email_document_uploaded,
+          email_weekly_digest: data.email_weekly_digest,
+        })
+      }
+      setLoading(false)
+    }
+
+    fetchPreferences()
+  }, [userId])
+
+  const handleToggle = async (key: keyof NotificationPreferences) => {
+    const newValue = !settings[key]
+    setSettings((prev) => ({ ...prev, [key]: newValue }))
+    setSaving(true)
+
+    const { error } = await supabase
+      .from('notification_preferences')
+      .upsert({
+        user_id: userId,
+        [key]: newValue,
+      }, { onConflict: 'user_id' })
+
+    if (error) {
+      // Revert on error
+      setSettings((prev) => ({ ...prev, [key]: !newValue }))
+      toast.error('Failed to save preference')
+    } else {
+      toast.success('Preference saved')
+    }
+    setSaving(false)
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -42,80 +103,78 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="emailNewDeal">New Deal Submissions</Label>
+              <Label htmlFor="email_new_deal">New Deal Submissions</Label>
               <p className="text-sm text-gray-500">
                 Receive an email when a vendor submits a new deal
               </p>
             </div>
             <Switch
-              id="emailNewDeal"
-              checked={settings.emailNewDeal}
-              onCheckedChange={() => handleToggle('emailNewDeal')}
+              id="email_new_deal"
+              checked={settings.email_new_deal}
+              onCheckedChange={() => handleToggle('email_new_deal')}
+              disabled={saving}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="emailDealUpdate">Deal Status Updates</Label>
+              <Label htmlFor="email_deal_update">Deal Status Updates</Label>
               <p className="text-sm text-gray-500">
                 Receive an email when a deal status changes
               </p>
             </div>
             <Switch
-              id="emailDealUpdate"
-              checked={settings.emailDealUpdate}
-              onCheckedChange={() => handleToggle('emailDealUpdate')}
+              id="email_deal_update"
+              checked={settings.email_deal_update}
+              onCheckedChange={() => handleToggle('email_deal_update')}
+              disabled={saving}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="emailNewMessage">New Messages</Label>
+              <Label htmlFor="email_new_message">New Messages</Label>
               <p className="text-sm text-gray-500">
                 Receive an email when you get a new message
               </p>
             </div>
             <Switch
-              id="emailNewMessage"
-              checked={settings.emailNewMessage}
-              onCheckedChange={() => handleToggle('emailNewMessage')}
+              id="email_new_message"
+              checked={settings.email_new_message}
+              onCheckedChange={() => handleToggle('email_new_message')}
+              disabled={saving}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="emailDocumentUploaded">Document Uploads</Label>
+              <Label htmlFor="email_document_uploaded">Document Uploads</Label>
               <p className="text-sm text-gray-500">
                 Receive an email when documents are uploaded
               </p>
             </div>
             <Switch
-              id="emailDocumentUploaded"
-              checked={settings.emailDocumentUploaded}
-              onCheckedChange={() => handleToggle('emailDocumentUploaded')}
+              id="email_document_uploaded"
+              checked={settings.email_document_uploaded}
+              onCheckedChange={() => handleToggle('email_document_uploaded')}
+              disabled={saving}
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="emailWeeklyDigest">Weekly Digest</Label>
+              <Label htmlFor="email_weekly_digest">Weekly Digest</Label>
               <p className="text-sm text-gray-500">
                 Receive a weekly summary of all activity
               </p>
             </div>
             <Switch
-              id="emailWeeklyDigest"
-              checked={settings.emailWeeklyDigest}
-              onCheckedChange={() => handleToggle('emailWeeklyDigest')}
+              id="email_weekly_digest"
+              checked={settings.email_weekly_digest}
+              onCheckedChange={() => handleToggle('email_weekly_digest')}
+              disabled={saving}
             />
           </div>
-        </div>
-
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm text-yellow-800">
-            Note: Email notification delivery requires email service configuration.
-            These settings will take effect once email services are enabled.
-          </p>
         </div>
       </CardContent>
     </Card>
