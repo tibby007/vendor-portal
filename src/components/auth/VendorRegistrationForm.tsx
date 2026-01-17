@@ -100,9 +100,10 @@ export function VendorRegistrationForm({ invitation, brokerName }: VendorRegistr
       }
 
       // Create vendor record using SECURITY DEFINER function
+      // Use invitation.broker_id directly (not the joined broker object)
       const { error: vendorError } = await supabase.rpc('create_vendor_for_user', {
         user_profile_id: authData.user.id,
-        user_broker_id: invitation.broker?.id,
+        user_broker_id: invitation.broker_id,
         vendor_company_name: formData.companyName,
       })
 
