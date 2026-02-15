@@ -11,6 +11,9 @@ const navItems = [
   { href: '/vendor/dealer-tools', label: 'Dealer Tools', icon: Wrench },
 ]
 
+const firstRow = <T,>(value: T | T[] | null | undefined): T | undefined =>
+  Array.isArray(value) ? value[0] : value || undefined
+
 export default async function VendorLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -36,20 +39,22 @@ export default async function VendorLayout({ children }: { children: ReactNode }
     .single()
 
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.email
-  const brokerEmail = (vendor?.broker as { profile?: { email?: string } } | null)?.profile?.email
-  const supportContact = vendor?.broker?.company_phone || brokerEmail || 'Support contact available from your broker'
+  const broker = firstRow(vendor?.broker)
+  const brokerProfile = firstRow(broker?.profile)
+  const brokerEmail = brokerProfile?.email
+  const supportContact = broker?.company_phone || brokerEmail || 'Support contact available from your broker'
 
   return (
     <PortalShell
       title={vendor?.company_name || 'Vendor Portal'}
       roleLabel="Vendor Portal"
-      supportLabel={`Your Broker: ${vendor?.broker?.company_name || 'Broker'} | Support: ${supportContact}`}
+      supportLabel={`Your Broker: ${broker?.company_name || 'Broker'} | Support: ${supportContact}`}
       userName={fullName}
       userEmail={profile.email}
       navItems={navItems}
     >
       <div className="mb-4 rounded-md border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800">
-        You were invited by {vendor?.broker?.company_name || 'your broker'}. Keep financing inside your sales process.
+        You were invited by {broker?.company_name || 'your broker'}. Keep financing inside your sales process.
       </div>
       {children}
     </PortalShell>

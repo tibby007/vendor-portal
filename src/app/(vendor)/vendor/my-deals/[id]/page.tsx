@@ -9,6 +9,9 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
+const firstRow = <T,>(value: T | T[] | null | undefined): T | undefined =>
+  Array.isArray(value) ? value[0] : value || undefined
+
 export default async function VendorDealDetailPage({ params }: PageProps) {
   const { id } = await params
   const supabase = await createClient()
@@ -32,7 +35,9 @@ export default async function VendorDealDetailPage({ params }: PageProps) {
 
   if (!deal) notFound()
 
-  const visibleStage = deal.stage?.is_visible_to_vendor ? deal.stage?.name : 'In Progress'
+  const stage = firstRow(deal.stage)
+  const broker = firstRow(vendor.broker)
+  const visibleStage = stage?.is_visible_to_vendor ? stage?.name : 'In Progress'
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(amount)
 
@@ -43,7 +48,7 @@ export default async function VendorDealDetailPage({ params }: PageProps) {
           <ArrowLeft className="h-4 w-4 mr-1" /> Back to My Deals
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">{deal.business_legal_name}</h1>
-        <p className="text-gray-600">Your Broker: {vendor.broker?.company_name || 'Broker'}</p>
+        <p className="text-gray-600">Your Broker: {broker?.company_name || 'Broker'}</p>
       </div>
 
       <Card>

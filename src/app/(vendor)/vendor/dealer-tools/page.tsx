@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
+const firstRow = <T,>(value: T | T[] | null | undefined): T | undefined =>
+  Array.isArray(value) ? value[0] : value || undefined
+
 export default async function DealerToolsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -23,7 +26,9 @@ export default async function DealerToolsPage() {
     .eq('is_published', true)
     .order('created_at', { ascending: false })
 
-  const support = vendor.broker?.company_phone || (vendor.broker as { profile?: { email?: string } } | null)?.profile?.email || 'Contact your broker'
+  const broker = firstRow(vendor.broker)
+  const brokerProfile = firstRow(broker?.profile)
+  const support = broker?.company_phone || brokerProfile?.email || 'Contact your broker'
 
   const buyerText = `Hi [Buyer Name], we offer financing options to keep your purchase moving without heavy upfront cash. I can send a quick pre-qual link if you want to check options today.`
   const buyerEmail = `Subject: Financing Option for Your Purchase\n\nHi [Buyer Name],\n\nWe can offer financing so you can move forward without delaying your purchase. If you'd like, I can share a quick pre-qualification link.\n\nBest,\n[Your Name]`

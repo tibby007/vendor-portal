@@ -9,6 +9,14 @@ interface PipelinePageProps {
   searchParams: Promise<{ vendor?: string; stage?: string }>
 }
 
+type RelatedName = { name?: string; company_name?: string } | { name?: string; company_name?: string }[] | null
+
+const getRelatedValue = (relation: RelatedName, key: 'name' | 'company_name') => {
+  if (!relation) return undefined
+  if (Array.isArray(relation)) return relation[0]?.[key]
+  return relation[key]
+}
+
 export default async function BrokerPipelinePage({ searchParams }: PipelinePageProps) {
   const params = await searchParams
   const supabase = await createClient()
@@ -84,11 +92,13 @@ export default async function BrokerPipelinePage({ searchParams }: PipelinePageP
                 <div key={deal.id} className="rounded-md border p-3 flex items-center justify-between gap-3">
                   <div>
                     <p className="font-medium">{deal.business_legal_name}</p>
-                    <p className="text-sm text-gray-500">{deal.vendor?.company_name || 'Unknown vendor'}</p>
+                    <p className="text-sm text-gray-500">
+                      {getRelatedValue(deal.vendor as RelatedName, 'company_name') || 'Unknown vendor'}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="font-medium">{formatCurrency(Number(deal.amount_requested || 0))}</p>
-                    <Badge variant="outline">{deal.stage?.name || 'Unknown stage'}</Badge>
+                    <Badge variant="outline">{getRelatedValue(deal.stage as RelatedName, 'name') || 'Unknown stage'}</Badge>
                   </div>
                 </div>
               ))}

@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
+const firstRow = <T,>(value: T | T[] | null | undefined): T | undefined =>
+  Array.isArray(value) ? value[0] : value || undefined
+
 export default async function VendorDashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -30,9 +33,14 @@ export default async function VendorDashboardPage() {
     .eq('vendor_id', vendor.id)
     .order('created_at', { ascending: false })
 
-  const typedDeals = (deals || []) as Array<{ submitted_at: string | null; stage?: { name?: string; is_visible_to_vendor?: boolean } | null }>
+  const typedDeals = (deals || []) as Array<{
+    submitted_at: string | null
+    stage?: { name?: string; is_visible_to_vendor?: boolean } | { name?: string; is_visible_to_vendor?: boolean }[] | null
+  }>
+  const broker = firstRow(vendor.broker)
+  const brokerProfile = firstRow(broker?.profile)
   const submittedCount = typedDeals.filter((deal) => Boolean(deal.submitted_at)).length
-  const actionableCount = typedDeals.filter((deal) => deal.stage?.name === 'Docs Needed').length
+  const actionableCount = typedDeals.filter((deal) => firstRow(deal.stage)?.name === 'Docs Needed').length
 
   return (
     <div className="space-y-6">
@@ -50,11 +58,11 @@ export default async function VendorDashboardPage() {
       <Card className="border-blue-100 bg-blue-50">
         <CardHeader>
           <CardTitle>Your Broker</CardTitle>
-          <CardDescription>{vendor.broker?.company_name || 'Broker'} is supporting your financing submissions.</CardDescription>
+          <CardDescription>{broker?.company_name || 'Broker'} is supporting your financing submissions.</CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-blue-900 space-y-1">
-          <p>Invited by: {vendor.broker?.company_name || 'Your Broker'}</p>
-          <p>Support: {vendor.broker?.company_phone || (vendor.broker as { profile?: { email?: string } } | null)?.profile?.email || 'Contact your broker'}</p>
+          <p>Invited by: {broker?.company_name || 'Your Broker'}</p>
+          <p>Support: {broker?.company_phone || brokerProfile?.email || 'Contact your broker'}</p>
         </CardContent>
       </Card>
 

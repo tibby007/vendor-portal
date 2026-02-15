@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Plus } from 'lucide-react'
 
+const firstRow = <T,>(value: T | T[] | null | undefined): T | undefined =>
+  Array.isArray(value) ? value[0] : value || undefined
+
 export default async function BrokerVendorsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -72,7 +75,7 @@ export default async function BrokerVendorsPage() {
                   <div>
                     <p className="font-medium">{vendor.company_name}</p>
                     <p className="text-sm text-gray-500">
-                      {vendor.profile?.first_name} {vendor.profile?.last_name} {vendor.profile?.email ? `• ${vendor.profile.email}` : ''}
+                      {firstRow(vendor.profile)?.first_name} {firstRow(vendor.profile)?.last_name} {firstRow(vendor.profile)?.email ? `• ${firstRow(vendor.profile)?.email}` : ''}
                     </p>
                   </div>
                   <Badge variant="outline">{vendor.status}</Badge>
