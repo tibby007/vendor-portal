@@ -19,13 +19,21 @@ export default async function VendorDashboardPage() {
 
   const { data: vendor } = await supabase
     .from('vendors')
-    .select('id, company_name, broker:brokers(company_name, company_phone, profile:profiles(email))')
+    .select('id, company_name, broker_id')
     .eq('profile_id', user.id)
     .single()
 
   if (!vendor) {
     redirect('/login')
   }
+
+  const { data: brokerData } = vendor?.broker_id
+    ? await supabase
+        .from('brokers')
+        .select('company_name, company_phone, profile:profiles(email)')
+        .eq('id', vendor.broker_id)
+        .single()
+    : { data: null }
 
   const { data: deals } = await supabase
     .from('deals')
@@ -37,7 +45,7 @@ export default async function VendorDashboardPage() {
     submitted_at: string | null
     stage?: { name?: string; is_visible_to_vendor?: boolean } | { name?: string; is_visible_to_vendor?: boolean }[] | null
   }>
-  const broker = firstRow(vendor.broker)
+  const broker = firstRow(brokerData)
   const brokerProfile = firstRow(broker?.profile)
   const submittedCount = typedDeals.filter((deal) => Boolean(deal.submitted_at)).length
   const actionableCount = typedDeals.filter((deal) => firstRow(deal.stage)?.name === 'Docs Needed').length

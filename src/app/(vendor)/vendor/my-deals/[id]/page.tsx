@@ -20,11 +20,19 @@ export default async function VendorDealDetailPage({ params }: PageProps) {
 
   const { data: vendor } = await supabase
     .from('vendors')
-    .select('id, broker:brokers(company_name)')
+    .select('id, broker_id')
     .eq('profile_id', user.id)
     .single()
 
   if (!vendor) redirect('/vendor')
+
+  const { data: brokerData } = vendor?.broker_id
+    ? await supabase
+        .from('brokers')
+        .select('company_name')
+        .eq('id', vendor.broker_id)
+        .single()
+    : { data: null }
 
   const { data: deal } = await supabase
     .from('deals')
@@ -36,7 +44,7 @@ export default async function VendorDealDetailPage({ params }: PageProps) {
   if (!deal) notFound()
 
   const stage = firstRow(deal.stage)
-  const broker = firstRow(vendor.broker)
+  const broker = firstRow(brokerData)
   const visibleStage = stage?.is_visible_to_vendor ? stage?.name : 'In Progress'
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(amount)

@@ -13,11 +13,19 @@ export default async function DealerToolsPage() {
 
   const { data: vendor } = await supabase
     .from('vendors')
-    .select('id, broker_id, broker:brokers(company_name, company_phone, profile:profiles(email))')
+    .select('id, broker_id')
     .eq('profile_id', user.id)
     .single()
 
   if (!vendor) redirect('/vendor')
+
+  const { data: brokerData } = vendor?.broker_id
+    ? await supabase
+        .from('brokers')
+        .select('company_name, company_phone, profile:profiles(email)')
+        .eq('id', vendor.broker_id)
+        .single()
+    : { data: null }
 
   const { data: resources } = await supabase
     .from('resources')
@@ -26,7 +34,7 @@ export default async function DealerToolsPage() {
     .eq('is_published', true)
     .order('created_at', { ascending: false })
 
-  const broker = firstRow(vendor.broker)
+  const broker = firstRow(brokerData)
   const brokerProfile = firstRow(broker?.profile)
   const support = broker?.company_phone || brokerProfile?.email || 'Contact your broker'
 
