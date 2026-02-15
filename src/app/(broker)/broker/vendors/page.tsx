@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Plus } from 'lucide-react'
+import { PendingInviteActions } from '@/components/broker/PendingInviteActions'
 
 const firstRow = <T,>(value: T | T[] | null | undefined): T | undefined =>
   Array.isArray(value) ? value[0] : value || undefined
@@ -53,7 +54,10 @@ export default async function BrokerVendorsPage() {
                   <p className="font-medium">{invite.company_name || invite.email}</p>
                   <p className="text-sm text-gray-500">{invite.email}</p>
                 </div>
-                <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+                  <PendingInviteActions invitationId={invite.id} />
+                </div>
               </div>
             ))}
           </CardContent>
