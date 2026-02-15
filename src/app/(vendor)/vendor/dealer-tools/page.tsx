@@ -48,12 +48,31 @@ export default async function DealerToolsPage() {
 
   if (!vendor) redirect('/vendor')
 
-  const [{ data: broker }, { data: profile }, { data: reps }, { data: resources }, { data: existingLink }] = await Promise.all([
+  const [{ data: latestDeal }, { data: existingLink }] = await Promise.all([
     supabase
-      .from('brokers')
-      .select('id, company_name, company_phone, logo_url')
-      .eq('id', vendor.broker_id)
-      .single(),
+      .from('deals')
+      .select('broker_id')
+      .eq('vendor_id', vendor.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from('vendor_prequal_links')
+      .select('slug, default_rep_id, broker_id')
+      .eq('vendor_id', vendor.id)
+      .maybeSingle(),
+  ])
+
+  const resolvedBrokerId = vendor.broker_id || latestDeal?.broker_id || existingLink?.broker_id || null
+
+  const [{ data: broker }, { data: profile }, { data: reps }, { data: resources }] = await Promise.all([
+    resolvedBrokerId
+      ? supabase
+          .from('brokers')
+          .select('id, company_name, company_phone, logo_url')
+          .eq('id', resolvedBrokerId)
+          .single()
+      : Promise.resolve({ data: null }),
     supabase
       .from('vendor_profiles')
       .select('vendor_id, dealership_name, city, state, phone, website, logo_url')
@@ -68,14 +87,9 @@ export default async function DealerToolsPage() {
     supabase
       .from('resources')
       .select('id, title, category, description, content, file_path')
-      .eq('broker_id', vendor.broker_id)
+      .eq('broker_id', resolvedBrokerId || '')
       .eq('is_published', true)
       .order('created_at', { ascending: false }),
-    supabase
-      .from('vendor_prequal_links')
-      .select('slug, default_rep_id')
-      .eq('vendor_id', vendor.id)
-      .maybeSingle(),
   ])
 
   const typedReps = (reps as SalesRep[]) || []
@@ -88,7 +102,7 @@ export default async function DealerToolsPage() {
       const slug = makeSlug()
       const { data: inserted, error: insertError } = await supabase
         .from('vendor_prequal_links')
-        .insert({ vendor_id: vendor.id, broker_id: vendor.broker_id, slug, default_rep_id: defaultRepId })
+        .insert({ vendor_id: vendor.id, broker_id: resolvedBrokerId, slug, default_rep_id: defaultRepId })
         .select('slug')
         .single()
 

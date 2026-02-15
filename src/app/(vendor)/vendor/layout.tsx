@@ -33,15 +33,36 @@ export default async function VendorLayout({ children }: { children: ReactNode }
 
   const { data: vendor } = await supabase
     .from('vendors')
-    .select('company_name, broker_id')
+    .select('id, company_name, broker_id')
     .eq('profile_id', user.id)
     .single()
 
-  const { data: brokerData } = vendor?.broker_id
+  const [{ data: latestDeal }, { data: prequalLink }] = await Promise.all([
+    vendor
+      ? supabase
+          .from('deals')
+          .select('broker_id')
+          .eq('vendor_id', vendor.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    vendor
+      ? supabase
+          .from('vendor_prequal_links')
+          .select('broker_id')
+          .eq('vendor_id', vendor.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ])
+
+  const resolvedBrokerId = vendor?.broker_id || latestDeal?.broker_id || prequalLink?.broker_id || null
+
+  const { data: brokerData } = resolvedBrokerId
     ? await supabase
         .from('brokers')
         .select('company_name, company_phone')
-        .eq('id', vendor.broker_id)
+        .eq('id', resolvedBrokerId)
         .single()
     : { data: null }
 

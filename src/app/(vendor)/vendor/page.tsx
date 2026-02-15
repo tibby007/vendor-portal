@@ -27,11 +27,28 @@ export default async function VendorDashboardPage() {
     redirect('/login')
   }
 
-  const { data: brokerData } = vendor?.broker_id
+  const [{ data: latestDeal }, { data: prequalLink }] = await Promise.all([
+    supabase
+      .from('deals')
+      .select('broker_id')
+      .eq('vendor_id', vendor.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from('vendor_prequal_links')
+      .select('broker_id')
+      .eq('vendor_id', vendor.id)
+      .maybeSingle(),
+  ])
+
+  const resolvedBrokerId = vendor.broker_id || latestDeal?.broker_id || prequalLink?.broker_id || null
+
+  const { data: brokerData } = resolvedBrokerId
     ? await supabase
         .from('brokers')
         .select('company_name, company_phone')
-        .eq('id', vendor.broker_id)
+        .eq('id', resolvedBrokerId)
         .single()
     : { data: null }
 
