@@ -4,6 +4,8 @@ import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { ResourceForm } from '@/components/resources/ResourceForm'
 
+export const dynamic = 'force-dynamic'
+
 export default async function NewTemplatePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

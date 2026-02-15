@@ -27,6 +27,7 @@ interface Resource {
   file_path: string | null
   category: string
   is_published: boolean
+  published_at?: string | null
 }
 
 interface ResourceFormProps {
@@ -81,14 +82,17 @@ export function ResourceForm({
     setSaving(true)
 
     try {
+      const shouldPublish = publish ? true : formData.is_published
       const resourceData = {
         broker_id: brokerId,
         title: formData.title,
         description: formData.description || null,
         content: formData.content || null,
         category: formData.category,
-        is_published: publish ? true : formData.is_published,
-        published_at: publish ? new Date().toISOString() : existingResource?.is_published ? undefined : null,
+        is_published: shouldPublish,
+        published_at: shouldPublish
+          ? existingResource?.published_at || new Date().toISOString()
+          : null,
       }
 
       if (isEditing) {
