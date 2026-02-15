@@ -44,6 +44,7 @@ type PortalShellProps = {
   title: string
   roleLabel: string
   supportLabel?: string
+  accentColor?: string
   userName: string
   userEmail: string
   navItems: ReadonlyArray<NavItem>
@@ -54,6 +55,7 @@ export function PortalShell({
   title,
   roleLabel,
   supportLabel,
+  accentColor = '#F97316',
   userName,
   userEmail,
   navItems,
@@ -117,8 +119,20 @@ export function PortalShell({
             <button className="lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu className="h-6 w-6" />
             </button>
-            <Badge variant="outline">{roleLabel}</Badge>
-            {supportLabel && <span className="text-sm text-gray-600 hidden md:block">{supportLabel}</span>}
+            <Badge
+              variant="outline"
+              style={{ borderColor: accentColor, color: accentColor, backgroundColor: `${accentColor}14` }}
+            >
+              {roleLabel}
+            </Badge>
+            {supportLabel && (
+              <span
+                className="text-sm hidden md:inline-flex items-center rounded-full border px-3 py-1"
+                style={{ borderColor: `${accentColor}55`, color: accentColor, backgroundColor: `${accentColor}14` }}
+              >
+                {supportLabel}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-3">

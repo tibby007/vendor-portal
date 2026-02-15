@@ -54,6 +54,7 @@ export default async function VendorLayout({ children }: { children: ReactNode }
       title={vendor?.company_name || 'Vendor Portal'}
       roleLabel="Vendor Portal"
       supportLabel={`Your Broker: ${broker?.company_name || 'Broker'} | Support: ${supportContact}`}
+      accentColor="#F97316"
       userName={fullName}
       userEmail={profile.email}
       navItems={navItems}

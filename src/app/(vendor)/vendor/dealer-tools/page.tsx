@@ -17,8 +17,10 @@ interface SalesRep {
   vendor_id: string
   first_name: string
   last_name: string
+  title: string | null
   phone: string
   email: string | null
+  photo_url: string | null
   is_default: boolean
 }
 
@@ -30,6 +32,8 @@ interface BrokerResource {
   content: string | null
   file_path: string | null
 }
+
+const makeSlug = () => `v${Math.random().toString(36).slice(2, 8)}`
 
 export default async function DealerToolsPage() {
   const supabase = await createClient()
@@ -44,10 +48,10 @@ export default async function DealerToolsPage() {
 
   if (!vendor) redirect('/vendor')
 
-  const [{ data: broker }, { data: profile }, { data: reps }, { data: resources }] = await Promise.all([
+  const [{ data: broker }, { data: profile }, { data: reps }, { data: resources }, { data: existingLink }] = await Promise.all([
     supabase
       .from('brokers')
-      .select('id, company_name, company_phone')
+      .select('id, company_name, company_phone, logo_url')
       .eq('id', vendor.broker_id)
       .single(),
     supabase
@@ -57,7 +61,7 @@ export default async function DealerToolsPage() {
       .maybeSingle(),
     supabase
       .from('vendor_sales_reps')
-      .select('id, vendor_id, first_name, last_name, phone, email, is_default')
+      .select('id, vendor_id, first_name, last_name, title, phone, email, photo_url, is_default')
       .eq('vendor_id', vendor.id)
       .order('is_default', { ascending: false })
       .order('created_at', { ascending: true }),
@@ -67,13 +71,42 @@ export default async function DealerToolsPage() {
       .eq('broker_id', vendor.broker_id)
       .eq('is_published', true)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('vendor_prequal_links')
+      .select('slug')
+      .eq('vendor_id', vendor.id)
+      .maybeSingle(),
   ])
+
+  let shortSlug = existingLink?.slug || ''
+
+  if (!shortSlug) {
+    for (let i = 0; i < 5; i += 1) {
+      const slug = makeSlug()
+      const { data: inserted, error: insertError } = await supabase
+        .from('vendor_prequal_links')
+        .insert({ vendor_id: vendor.id, broker_id: vendor.broker_id, slug })
+        .select('slug')
+        .single()
+
+      if (!insertError && inserted?.slug) {
+        shortSlug = inserted.slug
+        break
+      }
+    }
+  }
+
+  if (!shortSlug) {
+    shortSlug = `vendor-${vendor.id.slice(0, 8)}`
+  }
 
   return (
     <DealerToolsManager
       vendorId={vendor.id}
-      brokerId={vendor.broker_id}
       brokerName={broker?.company_name || 'Your Broker'}
+      brokerLogoUrl={broker?.logo_url || null}
+      brandColor="#F97316"
+      shortSlug={shortSlug}
       initialProfile={(profile as VendorProfile | null) || null}
       initialReps={(reps as SalesRep[]) || []}
       resources={(resources as BrokerResource[]) || []}
