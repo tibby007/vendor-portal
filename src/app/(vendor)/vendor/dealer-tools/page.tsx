@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { resolveBrokerName } from '@/lib/broker-public'
 import { DealerToolsManager } from '@/components/vendor/DealerToolsManager'
 
 interface VendorProfile {
@@ -68,9 +69,9 @@ export default async function DealerToolsPage() {
   const [{ data: broker }, { data: profile }, { data: reps }, { data: resources }] = await Promise.all([
     resolvedBrokerId
       ? supabase
-          .from('brokers')
-          .select('id, company_name, company_phone, logo_url')
-          .eq('id', resolvedBrokerId)
+          .from('broker_public')
+          .select('broker_id, company_name, display_name, support_email, support_phone, logo_url')
+          .eq('broker_id', resolvedBrokerId)
           .single()
       : Promise.resolve({ data: null }),
     supabase
@@ -127,7 +128,7 @@ export default async function DealerToolsPage() {
   return (
     <DealerToolsManager
       vendorId={vendor.id}
-      brokerName={broker?.company_name || 'Your Broker'}
+      brokerName={resolveBrokerName(broker)}
       brokerLogoUrl={broker?.logo_url || null}
       brandColor="#F97316"
       shortSlug={shortSlug}

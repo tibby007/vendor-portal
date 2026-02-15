@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ArrowRight, CheckCircle2, FileText, Send, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { resolveBrokerName, resolveBrokerSupportContact } from '@/lib/broker-public'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -46,9 +47,9 @@ export default async function VendorDashboardPage() {
 
   const { data: brokerData } = resolvedBrokerId
     ? await supabase
-        .from('brokers')
-        .select('company_name, company_phone')
-        .eq('id', resolvedBrokerId)
+        .from('broker_public')
+        .select('company_name, display_name, support_email, support_phone')
+        .eq('broker_id', resolvedBrokerId)
         .single()
     : { data: null }
 
@@ -63,6 +64,8 @@ export default async function VendorDashboardPage() {
     stage?: { name?: string; is_visible_to_vendor?: boolean } | { name?: string; is_visible_to_vendor?: boolean }[] | null
   }>
   const broker = firstRow(brokerData)
+  const brokerName = resolveBrokerName(broker)
+  const supportContact = resolveBrokerSupportContact(broker, 'Contact your broker')
   const submittedCount = typedDeals.filter((deal) => Boolean(deal.submitted_at)).length
   const actionableCount = typedDeals.filter((deal) => firstRow(deal.stage)?.name === 'Docs Needed').length
 
@@ -82,11 +85,11 @@ export default async function VendorDashboardPage() {
       <Card className="border-blue-100 bg-blue-50">
         <CardHeader>
           <CardTitle>Your Broker</CardTitle>
-          <CardDescription>{broker?.company_name || 'Broker'} is supporting your financing submissions.</CardDescription>
+          <CardDescription>{brokerName} is supporting your financing submissions.</CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-blue-900 space-y-1">
-          <p>Invited by: {broker?.company_name || 'Your Broker'}</p>
-          <p>Support: {broker?.company_phone || 'Contact your broker'}</p>
+          <p>Invited by: {brokerName}</p>
+          <p>Support: {supportContact}</p>
         </CardContent>
       </Card>
 

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { resolveBrokerName } from '@/lib/broker-public'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft } from 'lucide-react'
@@ -28,9 +29,9 @@ export default async function VendorDealDetailPage({ params }: PageProps) {
 
   const { data: brokerData } = vendor?.broker_id
     ? await supabase
-        .from('brokers')
-        .select('company_name')
-        .eq('id', vendor.broker_id)
+        .from('broker_public')
+        .select('company_name, display_name')
+        .eq('broker_id', vendor.broker_id)
         .single()
     : { data: null }
 
@@ -45,6 +46,7 @@ export default async function VendorDealDetailPage({ params }: PageProps) {
 
   const stage = firstRow(deal.stage)
   const broker = firstRow(brokerData)
+  const brokerName = resolveBrokerName(broker)
   const visibleStage = stage?.is_visible_to_vendor ? stage?.name : 'In Progress'
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(amount)
@@ -56,7 +58,7 @@ export default async function VendorDealDetailPage({ params }: PageProps) {
           <ArrowLeft className="h-4 w-4 mr-1" /> Back to My Deals
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">{deal.business_legal_name}</h1>
-        <p className="text-gray-600">Your Broker: {broker?.company_name || 'Broker'}</p>
+        <p className="text-gray-600">Your Broker: {brokerName}</p>
       </div>
 
       <Card>

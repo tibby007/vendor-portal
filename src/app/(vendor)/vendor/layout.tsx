@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/server'
+import { resolveBrokerName, resolveBrokerSupportContact } from '@/lib/broker-public'
 import { PortalShell, type NavIconKey } from '@/components/layout/PortalShell'
 
 const navItems = [
@@ -60,28 +61,29 @@ export default async function VendorLayout({ children }: { children: ReactNode }
 
   const { data: brokerData } = resolvedBrokerId
     ? await supabase
-        .from('brokers')
-        .select('company_name, company_phone')
-        .eq('id', resolvedBrokerId)
+        .from('broker_public')
+        .select('company_name, display_name, support_email, support_phone')
+        .eq('broker_id', resolvedBrokerId)
         .single()
     : { data: null }
 
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.email
   const broker = firstRow(brokerData)
-  const supportContact = broker?.company_phone || 'Support contact available from your broker'
+  const brokerName = resolveBrokerName(broker)
+  const supportContact = resolveBrokerSupportContact(broker, 'Support contact available from your broker')
 
   return (
     <PortalShell
       title={vendor?.company_name || 'Vendor Portal'}
       roleLabel="Vendor Portal"
-      supportLabel={`Your Broker: ${broker?.company_name || 'Broker'} | Support: ${supportContact}`}
+      supportLabel={`Your Broker: ${brokerName} | Support: ${supportContact}`}
       accentColor="#F97316"
       userName={fullName}
       userEmail={profile.email}
       navItems={navItems}
     >
       <div className="mb-4 rounded-md border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800">
-        You were invited by {broker?.company_name || 'your broker'}. Keep financing inside your sales process.
+        You were invited by {brokerName}. Keep financing inside your sales process.
       </div>
       {children}
     </PortalShell>
