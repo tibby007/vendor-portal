@@ -54,10 +54,22 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
-  // Redirect authenticated users from home to dashboard
+  let userRole: 'broker' | 'vendor' | null = null
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    userRole = profile?.role === 'broker' || profile?.role === 'vendor' ? profile.role : null
+  }
+
+  // Redirect authenticated users from home to role dashboard
   if (pathname === '/' && user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    url.pathname = userRole === 'vendor' ? '/vendor' : '/broker'
     return NextResponse.redirect(url)
   }
 
@@ -71,7 +83,27 @@ export async function updateSession(request: NextRequest) {
   // Redirect authenticated users away from login/register pages
   if (user && (pathname === '/login' || pathname === '/register')) {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    url.pathname = userRole === 'vendor' ? '/vendor' : '/broker'
+    return NextResponse.redirect(url)
+  }
+
+  // Legacy dashboard routes redirect to role-specific homes
+  if (user && pathname.startsWith('/dashboard')) {
+    const url = request.nextUrl.clone()
+    url.pathname = userRole === 'vendor' ? '/vendor' : '/broker'
+    return NextResponse.redirect(url)
+  }
+
+  // Role route gating
+  if (user && pathname.startsWith('/broker') && userRole === 'vendor') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/vendor'
+    return NextResponse.redirect(url)
+  }
+
+  if (user && pathname.startsWith('/vendor') && userRole === 'broker') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/broker'
     return NextResponse.redirect(url)
   }
 

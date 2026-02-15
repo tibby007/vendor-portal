@@ -1,0 +1,57 @@
+import { redirect } from 'next/navigation'
+import { LayoutDashboard, Send, FileStack, Wrench } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { createClient } from '@/lib/supabase/server'
+import { PortalShell } from '@/components/layout/PortalShell'
+
+const navItems = [
+  { href: '/vendor', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/vendor/submit-deal', label: 'Submit Deal', icon: Send },
+  { href: '/vendor/my-deals', label: 'My Deals', icon: FileStack },
+  { href: '/vendor/dealer-tools', label: 'Dealer Tools', icon: Wrench },
+]
+
+export default async function VendorLayout({ children }: { children: ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, role, first_name, last_name, email')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role !== 'vendor') {
+    redirect('/broker')
+  }
+
+  const { data: vendor } = await supabase
+    .from('vendors')
+    .select('company_name, broker:brokers(company_name, company_phone, profile:profiles(email))')
+    .eq('profile_id', user.id)
+    .single()
+
+  const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.email
+  const brokerEmail = (vendor?.broker as { profile?: { email?: string } } | null)?.profile?.email
+  const supportContact = vendor?.broker?.company_phone || brokerEmail || 'Support contact available from your broker'
+
+  return (
+    <PortalShell
+      title={vendor?.company_name || 'Vendor Portal'}
+      roleLabel="Vendor Portal"
+      supportLabel={`Your Broker: ${vendor?.broker?.company_name || 'Broker'} | Support: ${supportContact}`}
+      userName={fullName}
+      userEmail={profile.email}
+      navItems={navItems}
+    >
+      <div className="mb-4 rounded-md border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800">
+        You were invited by {vendor?.broker?.company_name || 'your broker'}. Keep financing inside your sales process.
+      </div>
+      {children}
+    </PortalShell>
+  )
+}

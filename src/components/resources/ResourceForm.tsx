@@ -32,6 +32,7 @@ interface Resource {
 interface ResourceFormProps {
   brokerId: string
   existingResource?: Resource | null
+  basePath?: string
 }
 
 const CATEGORIES = [
@@ -45,7 +46,11 @@ const CATEGORIES = [
   'Other',
 ]
 
-export function ResourceForm({ brokerId, existingResource }: ResourceFormProps) {
+export function ResourceForm({
+  brokerId,
+  existingResource,
+  basePath = '/dashboard/resources',
+}: ResourceFormProps) {
   const [formData, setFormData] = useState({
     title: existingResource?.title || '',
     description: existingResource?.description || '',
@@ -101,7 +106,7 @@ export function ResourceForm({ brokerId, existingResource }: ResourceFormProps) 
         if (insertError) throw insertError
       }
 
-      router.push('/dashboard/resources')
+      router.push(basePath)
       router.refresh()
     } catch (err) {
       console.error('Error saving resource:', err)
@@ -127,7 +132,7 @@ export function ResourceForm({ brokerId, existingResource }: ResourceFormProps) 
 
       if (deleteError) throw deleteError
 
-      router.push('/dashboard/resources')
+      router.push(basePath)
       router.refresh()
     } catch (err) {
       console.error('Error deleting resource:', err)

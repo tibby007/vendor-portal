@@ -77,9 +77,15 @@ interface ApplicationFormProps {
   vendorId: string
   brokerId: string
   existingDealId?: string
+  redirectBasePath?: string
 }
 
-export function ApplicationForm({ vendorId, brokerId, existingDealId }: ApplicationFormProps) {
+export function ApplicationForm({
+  vendorId,
+  brokerId,
+  existingDealId,
+  redirectBasePath = '/dashboard/deals',
+}: ApplicationFormProps) {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState<ApplicationData>(initialData)
   const [uploadedDocs, setUploadedDocs] = useState<Array<{ id: string; name: string; category: string }>>([])
@@ -277,7 +283,7 @@ export function ApplicationForm({ vendorId, brokerId, existingDealId }: Applicat
           .eq('id', dealId)
       }
 
-      router.push('/dashboard/deals')
+      router.push(redirectBasePath)
       router.refresh()
     } catch {
       setError('Failed to submit application')
