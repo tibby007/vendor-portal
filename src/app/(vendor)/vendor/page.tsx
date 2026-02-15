@@ -30,7 +30,7 @@ export default async function VendorDashboardPage() {
   const { data: brokerData } = vendor?.broker_id
     ? await supabase
         .from('brokers')
-        .select('company_name, company_phone, profile:profiles(email)')
+        .select('company_name, company_phone')
         .eq('id', vendor.broker_id)
         .single()
     : { data: null }
@@ -46,7 +46,6 @@ export default async function VendorDashboardPage() {
     stage?: { name?: string; is_visible_to_vendor?: boolean } | { name?: string; is_visible_to_vendor?: boolean }[] | null
   }>
   const broker = firstRow(brokerData)
-  const brokerProfile = firstRow(broker?.profile)
   const submittedCount = typedDeals.filter((deal) => Boolean(deal.submitted_at)).length
   const actionableCount = typedDeals.filter((deal) => firstRow(deal.stage)?.name === 'Docs Needed').length
 
@@ -70,7 +69,7 @@ export default async function VendorDashboardPage() {
         </CardHeader>
         <CardContent className="text-sm text-blue-900 space-y-1">
           <p>Invited by: {broker?.company_name || 'Your Broker'}</p>
-          <p>Support: {broker?.company_phone || brokerProfile?.email || 'Contact your broker'}</p>
+          <p>Support: {broker?.company_phone || 'Contact your broker'}</p>
         </CardContent>
       </Card>
 

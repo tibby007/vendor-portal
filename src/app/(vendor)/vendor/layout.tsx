@@ -40,16 +40,14 @@ export default async function VendorLayout({ children }: { children: ReactNode }
   const { data: brokerData } = vendor?.broker_id
     ? await supabase
         .from('brokers')
-        .select('company_name, company_phone, profile:profiles(email)')
+        .select('company_name, company_phone')
         .eq('id', vendor.broker_id)
         .single()
     : { data: null }
 
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.email
   const broker = firstRow(brokerData)
-  const brokerProfile = firstRow(broker?.profile)
-  const brokerEmail = brokerProfile?.email
-  const supportContact = broker?.company_phone || brokerEmail || 'Support contact available from your broker'
+  const supportContact = broker?.company_phone || 'Support contact available from your broker'
 
   return (
     <PortalShell

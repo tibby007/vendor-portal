@@ -47,7 +47,7 @@ export default async function DealerToolsPage() {
   const [{ data: broker }, { data: profile }, { data: reps }, { data: resources }] = await Promise.all([
     supabase
       .from('brokers')
-      .select('id, company_name')
+      .select('id, company_name, company_phone')
       .eq('id', vendor.broker_id)
       .single(),
     supabase
