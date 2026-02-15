@@ -1,10 +1,35 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { DealerToolsManager } from '@/components/vendor/DealerToolsManager'
 
-const firstRow = <T,>(value: T | T[] | null | undefined): T | undefined =>
-  Array.isArray(value) ? value[0] : value || undefined
+interface VendorProfile {
+  vendor_id: string
+  dealership_name: string | null
+  city: string | null
+  state: string | null
+  phone: string | null
+  website: string | null
+  logo_url: string | null
+}
+
+interface SalesRep {
+  id: string
+  vendor_id: string
+  first_name: string
+  last_name: string
+  phone: string
+  email: string | null
+  is_default: boolean
+}
+
+interface BrokerResource {
+  id: string
+  title: string
+  category: string | null
+  description: string | null
+  content: string | null
+  file_path: string | null
+}
 
 export default async function DealerToolsPage() {
   const supabase = await createClient()
@@ -19,99 +44,39 @@ export default async function DealerToolsPage() {
 
   if (!vendor) redirect('/vendor')
 
-  const { data: brokerData } = vendor?.broker_id
-    ? await supabase
-        .from('brokers')
-        .select('company_name, company_phone, profile:profiles(email)')
-        .eq('id', vendor.broker_id)
-        .single()
-    : { data: null }
-
-  const { data: resources } = await supabase
-    .from('resources')
-    .select('id, title, description, category')
-    .eq('broker_id', vendor.broker_id)
-    .eq('is_published', true)
-    .order('created_at', { ascending: false })
-
-  const broker = firstRow(brokerData)
-  const brokerProfile = firstRow(broker?.profile)
-  const support = broker?.company_phone || brokerProfile?.email || 'Contact your broker'
-
-  const buyerText = `Hi [Buyer Name], we offer financing options to keep your purchase moving without heavy upfront cash. I can send a quick pre-qual link if you want to check options today.`
-  const buyerEmail = `Subject: Financing Option for Your Purchase\n\nHi [Buyer Name],\n\nWe can offer financing so you can move forward without delaying your purchase. If you'd like, I can share a quick pre-qualification link.\n\nBest,\n[Your Name]`
+  const [{ data: broker }, { data: profile }, { data: reps }, { data: resources }] = await Promise.all([
+    supabase
+      .from('brokers')
+      .select('id, company_name')
+      .eq('id', vendor.broker_id)
+      .single(),
+    supabase
+      .from('vendor_profiles')
+      .select('vendor_id, dealership_name, city, state, phone, website, logo_url')
+      .eq('vendor_id', vendor.id)
+      .maybeSingle(),
+    supabase
+      .from('vendor_sales_reps')
+      .select('id, vendor_id, first_name, last_name, phone, email, is_default')
+      .eq('vendor_id', vendor.id)
+      .order('is_default', { ascending: false })
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('resources')
+      .select('id, title, category, description, content, file_path')
+      .eq('broker_id', vendor.broker_id)
+      .eq('is_published', true)
+      .order('created_at', { ascending: false }),
+  ])
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dealer Tools</h1>
-        <p className="text-gray-600">Financing tools for your sales team and buyer conversations.</p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Buyer Text Script</CardTitle>
-          <CardDescription>Use this script to keep financing inside your sales process.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border bg-gray-50 p-3 text-sm whitespace-pre-wrap">{buyerText}</div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Buyer Email Script</CardTitle>
-          <CardDescription>Copy and personalize before sending.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border bg-gray-50 p-3 text-sm whitespace-pre-wrap">{buyerEmail}</div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Financing Available One-Pager</CardTitle>
-          <CardDescription>Download and share with buyers. Placeholder asset for MVP.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button variant="outline" disabled>Download One-Pager (Coming Soon)</Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Shareable Pre-Qual Link + QR</CardTitle>
-          <CardDescription>Placeholder until pre-qual flow is implemented.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <p className="rounded-md border bg-gray-50 p-3">Pre-Qual Link: https://portal.example.com/prequal/[vendor-id]</p>
-          <div className="h-32 w-32 border rounded-md flex items-center justify-center text-xs text-gray-500">QR Placeholder</div>
-          <p className="text-gray-600">Support: {support}</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Broker Resources</CardTitle>
-          <CardDescription>Published templates and resources from your broker.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {!resources?.length ? (
-            <p className="text-sm text-gray-500">No published resources yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {resources.map((resource) => (
-                <div key={resource.id} className="rounded-md border p-3">
-                  <p className="font-medium">{resource.title}</p>
-                  <p className="text-sm text-gray-500">
-                    {resource.category || 'General'}{resource.description ? ` • ${resource.description}` : ''}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <DealerToolsManager
+      vendorId={vendor.id}
+      brokerId={vendor.broker_id}
+      brokerName={broker?.company_name || 'Your Broker'}
+      initialProfile={(profile as VendorProfile | null) || null}
+      initialReps={(reps as SalesRep[]) || []}
+      resources={(resources as BrokerResource[]) || []}
+    />
   )
 }
