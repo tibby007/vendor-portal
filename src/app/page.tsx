@@ -37,31 +37,52 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="pt-28 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#111827] leading-tight">
+      <section className="relative pt-28 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#111827] via-[#1F2937] to-[#111827] animate-gradient-shift" />
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 bg-grid-pattern animate-grid-flow" />
+        </div>
+
+        <div className="absolute -inset-12 opacity-30">
+          <Image
+            src="/logo.png"
+            alt=""
+            fill
+            className="object-cover blur-3xl scale-125 mix-blend-screen"
+            sizes="100vw"
+            priority
+          />
+        </div>
+
+        <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-[#F97316] to-[#EA580C] rounded-full blur-3xl opacity-30 animate-float-slow" />
+        <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-br from-[#EA580C] to-[#F97316] rounded-full blur-3xl opacity-20 animate-float-delayed" />
+
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
             VendorOS: Vendor-Driven Deal Flow for Brokers
           </h1>
-          <p className="mt-6 text-lg text-[#4B5563] max-w-3xl mx-auto">
+          <p className="mt-6 text-lg text-gray-200 max-w-3xl mx-auto">
             Invite dealers into a branded portal, capture submissions cleanly, and track deal status without chasing documents.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/login"
-              className="inline-flex items-center justify-center px-7 py-3.5 bg-[#111827] hover:bg-[#1F2937] text-white font-semibold rounded-xl"
+              className="inline-flex items-center justify-center px-7 py-3.5 bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F97316] text-white font-semibold rounded-xl shadow-lg shadow-[#F97316]/40"
             >
               Log in
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center justify-center px-7 py-3.5 border border-[#D1D5DB] hover:border-[#F97316] text-[#111827] font-semibold rounded-xl"
+              className="inline-flex items-center justify-center px-7 py-3.5 border border-white/30 hover:border-[#F97316] text-white font-semibold rounded-xl bg-white/5"
             >
               Request access
             </Link>
           </div>
         </div>
+
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent" />
       </section>
 
       <section className="pb-14 px-4 sm:px-6 lg:px-8">
