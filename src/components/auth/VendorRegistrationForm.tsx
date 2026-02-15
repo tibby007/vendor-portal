@@ -119,7 +119,7 @@ export function VendorRegistrationForm({ invitation, brokerName }: VendorRegistr
         .update({ status: 'accepted' })
         .eq('id', invitation.id)
 
-      router.push('/dashboard')
+      router.push('/vendor')
       router.refresh()
     } catch {
       setError('An unexpected error occurred')
@@ -135,9 +135,9 @@ export function VendorRegistrationForm({ invitation, brokerName }: VendorRegistr
           <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
             <Building className="h-6 w-6 text-blue-600" />
           </div>
-          <CardTitle className="text-2xl font-bold">Join {brokerName}</CardTitle>
+          <CardTitle className="text-2xl font-bold">You were invited by {brokerName}</CardTitle>
           <CardDescription>
-            You&apos;ve been invited to join the Vendor Portal
+            Create your dealer account to submit financing requests and track deal status.
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleRegister}>
@@ -267,7 +267,7 @@ export function VendorRegistrationForm({ invitation, brokerName }: VendorRegistr
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Account
+              Create account
             </Button>
 
             <p className="text-xs text-center text-gray-500">
