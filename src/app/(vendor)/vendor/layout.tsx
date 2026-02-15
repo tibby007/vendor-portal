@@ -29,7 +29,7 @@ export default async function VendorLayout({ children }: { children: ReactNode }
     .single()
 
   if (!profile || profile.role !== 'vendor') {
-    redirect('/broker')
+    redirect('/login')
   }
 
   const { data: vendor } = await supabase

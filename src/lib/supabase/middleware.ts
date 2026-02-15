@@ -80,6 +80,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Authenticated users must have a valid role for protected app routes
+  if (user && !userRole && !isPublicRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
   // Redirect authenticated users away from login/register pages
   if (user && (pathname === '/login' || pathname === '/register')) {
     const url = request.nextUrl.clone()

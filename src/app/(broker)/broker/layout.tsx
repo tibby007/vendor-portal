@@ -27,7 +27,7 @@ export default async function BrokerLayout({ children }: { children: ReactNode }
     .single()
 
   if (!profile || profile.role !== 'broker') {
-    redirect('/vendor')
+    redirect('/login')
   }
 
   const { data: broker } = await supabase
