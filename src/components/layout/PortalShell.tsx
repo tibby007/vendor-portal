@@ -3,16 +3,41 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import type { ComponentType, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Menu, X, Building2 } from 'lucide-react'
+import {
+  Menu,
+  X,
+  Building2,
+  LayoutDashboard,
+  Users,
+  KanbanSquare,
+  BookOpen,
+  BarChart3,
+  Send,
+  FileStack,
+  Wrench,
+} from 'lucide-react'
 import { SignOutButton } from '@/components/layout/SignOutButton'
+
+const iconMap = {
+  dashboard: LayoutDashboard,
+  vendors: Users,
+  pipeline: KanbanSquare,
+  templates: BookOpen,
+  reports: BarChart3,
+  submitDeal: Send,
+  myDeals: FileStack,
+  dealerTools: Wrench,
+} as const
+
+export type NavIconKey = keyof typeof iconMap
 
 type NavItem = {
   href: string
   label: string
-  icon: ComponentType<{ className?: string }>
+  icon: NavIconKey
 }
 
 type PortalShellProps = {
@@ -21,7 +46,7 @@ type PortalShellProps = {
   supportLabel?: string
   userName: string
   userEmail: string
-  navItems: NavItem[]
+  navItems: ReadonlyArray<NavItem>
   children: ReactNode
 }
 
@@ -68,6 +93,7 @@ export function PortalShell({
         <nav className="p-3 space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href
+            const Icon = iconMap[item.icon]
             return (
               <Link
                 key={item.href}
@@ -77,7 +103,7 @@ export function PortalShell({
                 }`}
                 onClick={() => setSidebarOpen(false)}
               >
-                <item.icon className="h-4 w-4" />
+                <Icon className="h-4 w-4" />
                 {item.label}
               </Link>
             )

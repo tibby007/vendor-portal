@@ -1,16 +1,15 @@
 import { redirect } from 'next/navigation'
-import { LayoutDashboard, Users, KanbanSquare, BookOpen, BarChart3 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { PortalShell } from '@/components/layout/PortalShell'
+import { PortalShell, type NavIconKey } from '@/components/layout/PortalShell'
 
 const navItems = [
-  { href: '/broker', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/broker/vendors', label: 'Vendors', icon: Users },
-  { href: '/broker/pipeline', label: 'Pipeline', icon: KanbanSquare },
-  { href: '/broker/templates', label: 'Templates/Resources', icon: BookOpen },
-  { href: '/broker/reports', label: 'Reports', icon: BarChart3 },
-]
+  { href: '/broker', label: 'Dashboard', icon: 'dashboard' },
+  { href: '/broker/vendors', label: 'Vendors', icon: 'vendors' },
+  { href: '/broker/pipeline', label: 'Pipeline', icon: 'pipeline' },
+  { href: '/broker/templates', label: 'Templates/Resources', icon: 'templates' },
+  { href: '/broker/reports', label: 'Reports', icon: 'reports' },
+] as const satisfies ReadonlyArray<{ href: string; label: string; icon: NavIconKey }>
 
 export default async function BrokerLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()

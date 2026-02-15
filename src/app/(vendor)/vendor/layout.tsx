@@ -1,15 +1,14 @@
 import { redirect } from 'next/navigation'
-import { LayoutDashboard, Send, FileStack, Wrench } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { PortalShell } from '@/components/layout/PortalShell'
+import { PortalShell, type NavIconKey } from '@/components/layout/PortalShell'
 
 const navItems = [
-  { href: '/vendor', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/vendor/submit-deal', label: 'Submit Deal', icon: Send },
-  { href: '/vendor/my-deals', label: 'My Deals', icon: FileStack },
-  { href: '/vendor/dealer-tools', label: 'Dealer Tools', icon: Wrench },
-]
+  { href: '/vendor', label: 'Dashboard', icon: 'dashboard' },
+  { href: '/vendor/submit-deal', label: 'Submit Deal', icon: 'submitDeal' },
+  { href: '/vendor/my-deals', label: 'My Deals', icon: 'myDeals' },
+  { href: '/vendor/dealer-tools', label: 'Dealer Tools', icon: 'dealerTools' },
+] as const satisfies ReadonlyArray<{ href: string; label: string; icon: NavIconKey }>
 
 const firstRow = <T,>(value: T | T[] | null | undefined): T | undefined =>
   Array.isArray(value) ? value[0] : value || undefined
