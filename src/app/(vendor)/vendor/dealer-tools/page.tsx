@@ -73,10 +73,13 @@ export default async function DealerToolsPage() {
       .order('created_at', { ascending: false }),
     supabase
       .from('vendor_prequal_links')
-      .select('slug')
+      .select('slug, default_rep_id')
       .eq('vendor_id', vendor.id)
       .maybeSingle(),
   ])
+
+  const typedReps = (reps as SalesRep[]) || []
+  const defaultRepId = typedReps.find((rep) => rep.is_default)?.id || typedReps[0]?.id || null
 
   let shortSlug = existingLink?.slug || ''
 
@@ -85,7 +88,7 @@ export default async function DealerToolsPage() {
       const slug = makeSlug()
       const { data: inserted, error: insertError } = await supabase
         .from('vendor_prequal_links')
-        .insert({ vendor_id: vendor.id, broker_id: vendor.broker_id, slug })
+        .insert({ vendor_id: vendor.id, broker_id: vendor.broker_id, slug, default_rep_id: defaultRepId })
         .select('slug')
         .single()
 
@@ -100,6 +103,13 @@ export default async function DealerToolsPage() {
     shortSlug = `vendor-${vendor.id.slice(0, 8)}`
   }
 
+  if (existingLink?.slug && existingLink.default_rep_id !== defaultRepId) {
+    await supabase
+      .from('vendor_prequal_links')
+      .update({ default_rep_id: defaultRepId })
+      .eq('vendor_id', vendor.id)
+  }
+
   return (
     <DealerToolsManager
       vendorId={vendor.id}
@@ -108,7 +118,7 @@ export default async function DealerToolsPage() {
       brandColor="#F97316"
       shortSlug={shortSlug}
       initialProfile={(profile as VendorProfile | null) || null}
-      initialReps={(reps as SalesRep[]) || []}
+      initialReps={typedReps}
       resources={(resources as BrokerResource[]) || []}
     />
   )

@@ -1,10 +1,13 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
+import { PrequalLandingForm } from '@/components/prequal/PrequalLandingForm'
 
 interface PageProps {
   params: Promise<{ slug: string }>
 }
+
+const firstRow = <T,>(value: T | T[] | null | undefined): T | undefined =>
+  Array.isArray(value) ? value[0] : value || undefined
 
 export default async function PrequalLinkPage({ params }: PageProps) {
   const { slug } = await params
@@ -12,30 +15,61 @@ export default async function PrequalLinkPage({ params }: PageProps) {
 
   const { data: prequal } = await supabase
     .from('vendor_prequal_links')
-    .select('slug, vendor:vendors(company_name, broker:brokers(company_name))')
+    .select('slug, vendor_id, broker_id, default_rep_id')
     .eq('slug', slug)
     .single()
 
   if (!prequal) notFound()
 
-  const vendor = Array.isArray(prequal.vendor) ? prequal.vendor[0] : prequal.vendor
-  const broker = Array.isArray(vendor?.broker) ? vendor.broker[0] : vendor?.broker
+  const [{ data: vendor }, { data: broker }, { data: vendorProfile }, { data: rep }] = await Promise.all([
+    supabase
+      .from('vendors')
+      .select('id, company_name')
+      .eq('id', prequal.vendor_id)
+      .single(),
+    supabase
+      .from('brokers')
+      .select('id, company_name')
+      .eq('id', prequal.broker_id)
+      .single(),
+    supabase
+      .from('vendor_profiles')
+      .select('city, state, logo_url')
+      .eq('vendor_id', prequal.vendor_id)
+      .maybeSingle(),
+    prequal.default_rep_id
+      ? supabase
+          .from('vendor_sales_reps')
+          .select('id, first_name, last_name, title, phone, email, photo_url')
+          .eq('id', prequal.default_rep_id)
+          .eq('vendor_id', prequal.vendor_id)
+          .maybeSingle()
+      : supabase
+          .from('vendor_sales_reps')
+          .select('id, first_name, last_name, title, phone, email, photo_url')
+          .eq('vendor_id', prequal.vendor_id)
+          .eq('is_default', true)
+          .maybeSingle(),
+  ])
+
+  const resolvedRep = firstRow(rep)
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
-      <div className="max-w-xl w-full bg-white border rounded-xl p-8 text-center space-y-4">
-        <p className="text-sm text-gray-500">Financing Pre-Qualification</p>
-        <h1 className="text-2xl font-bold text-gray-900">{vendor?.company_name || 'Dealer'} Financing Options</h1>
-        <p className="text-gray-600">
-          This request routes to {broker?.company_name || 'the broker'} for follow-up and next steps.
-        </p>
-        <p className="text-sm text-gray-500">
-          A public buyer pre-qual form can be connected here in phase 2.
-        </p>
-        <Link href="/login" className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#111827] text-white font-semibold">
-          Continue
-        </Link>
-      </div>
-    </div>
+    <PrequalLandingForm
+      slug={slug}
+      dealerName={vendor?.company_name || 'Dealer'}
+      dealerCityState={[vendorProfile?.city, vendorProfile?.state].filter(Boolean).join(', ') || 'Your Area'}
+      brokerName={broker?.company_name || 'Broker'}
+      dealerLogoUrl={vendorProfile?.logo_url || null}
+      defaultRep={resolvedRep
+        ? {
+            name: `${resolvedRep.first_name} ${resolvedRep.last_name}`,
+            title: resolvedRep.title,
+            phone: resolvedRep.phone,
+            email: resolvedRep.email,
+            photo_url: resolvedRep.photo_url,
+          }
+        : null}
+    />
   )
 }

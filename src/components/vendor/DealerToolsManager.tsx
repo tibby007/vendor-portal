@@ -382,6 +382,10 @@ export function DealerToolsManager({
     }
 
     await refreshReps()
+    await supabase
+      .from('vendor_prequal_links')
+      .update({ default_rep_id: id, updated_at: new Date().toISOString() })
+      .eq('vendor_id', vendorId)
     setSelectedRepId(id)
     setSuccess('Default rep updated.')
   }
