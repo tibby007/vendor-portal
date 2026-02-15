@@ -412,6 +412,7 @@ export function DealerToolsManager({
     popup.document.write(`
       <html>
         <head>
+          <meta charset="utf-8" />
           <title>${profile.dealership_name} - Financing Sheet</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 0; color: #111827; background: #f9fafb; }
@@ -479,13 +480,30 @@ export function DealerToolsManager({
               <div class="small" style="margin-top:18px;">Powered by ${brokerName}</div>
             </div>
           </div>
+          <script>
+            const waitForImages = () => Promise.all(
+              Array.from(document.images).map((img) => {
+                if (img.complete) return Promise.resolve()
+                return new Promise((resolve) => {
+                  img.addEventListener('load', resolve, { once: true })
+                  img.addEventListener('error', resolve, { once: true })
+                })
+              })
+            )
+
+            window.addEventListener('load', async () => {
+              await waitForImages()
+              setTimeout(() => {
+                window.print()
+              }, 150)
+            })
+          </script>
         </body>
       </html>
     `)
 
     popup.document.close()
     popup.focus()
-    popup.print()
   }
 
   const cardHeaderStyle = { borderTop: `4px solid ${localAccent}` }
