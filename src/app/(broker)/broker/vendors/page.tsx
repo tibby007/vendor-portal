@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus } from 'lucide-react'
+import { ArrowRight, Plus } from 'lucide-react'
 import { PendingInviteActions } from '@/components/broker/PendingInviteActions'
 
 const firstRow = <T,>(value: T | T[] | null | undefined): T | undefined =>
@@ -75,15 +75,22 @@ export default async function BrokerVendorsPage() {
           ) : (
             <div className="space-y-3">
               {vendors.map((vendor) => (
-                <div key={vendor.id} className="rounded-md border p-3 flex items-center justify-between">
+                <Link
+                  key={vendor.id}
+                  href={`/broker/vendors/${vendor.id}`}
+                  className="rounded-md border p-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                >
                   <div>
                     <p className="font-medium">{vendor.company_name}</p>
                     <p className="text-sm text-gray-500">
                       {firstRow(vendor.profile)?.first_name} {firstRow(vendor.profile)?.last_name} {firstRow(vendor.profile)?.email ? `• ${firstRow(vendor.profile)?.email}` : ''}
                     </p>
                   </div>
-                  <Badge variant="outline">{vendor.status}</Badge>
-                </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">{vendor.status}</Badge>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                </Link>
               ))}
             </div>
           )}
