@@ -69,7 +69,7 @@ export async function updateSession(request: NextRequest) {
   // Redirect authenticated users from home to role dashboard
   if (pathname === '/' && user) {
     const url = request.nextUrl.clone()
-    url.pathname = userRole === 'vendor' ? '/vendor' : '/broker'
+    url.pathname = userRole === 'vendor' ? '/vendor' : userRole === 'broker' ? '/broker' : '/login'
     return NextResponse.redirect(url)
   }
 
@@ -87,8 +87,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirect authenticated users away from login/register pages
-  if (user && (pathname === '/login' || pathname === '/register')) {
+  // Redirect authenticated users away from login/register pages only when role is known
+  if (user && userRole && (pathname === '/login' || pathname === '/register')) {
     const url = request.nextUrl.clone()
     url.pathname = userRole === 'vendor' ? '/vendor' : '/broker'
     return NextResponse.redirect(url)
@@ -97,20 +97,20 @@ export async function updateSession(request: NextRequest) {
   // Legacy dashboard routes redirect to role-specific homes
   if (user && pathname.startsWith('/dashboard')) {
     const url = request.nextUrl.clone()
-    url.pathname = userRole === 'vendor' ? '/vendor' : '/broker'
+    url.pathname = userRole === 'vendor' ? '/vendor' : userRole === 'broker' ? '/broker' : '/login'
     return NextResponse.redirect(url)
   }
 
   // Role route gating
-  if (user && pathname.startsWith('/broker') && userRole === 'vendor') {
+  if (user && pathname.startsWith('/broker') && (userRole === 'vendor' || !userRole)) {
     const url = request.nextUrl.clone()
-    url.pathname = '/vendor'
+    url.pathname = userRole === 'vendor' ? '/vendor' : '/login'
     return NextResponse.redirect(url)
   }
 
-  if (user && pathname.startsWith('/vendor') && userRole === 'broker') {
+  if (user && pathname.startsWith('/vendor') && (userRole === 'broker' || !userRole)) {
     const url = request.nextUrl.clone()
-    url.pathname = '/broker'
+    url.pathname = userRole === 'broker' ? '/broker' : '/login'
     return NextResponse.redirect(url)
   }
 
