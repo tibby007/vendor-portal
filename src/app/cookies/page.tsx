@@ -161,6 +161,17 @@ export default function CookiesPage() {
           <p className="text-gray-400 text-sm">
             &copy; {new Date().getFullYear()} VendorBuddy. All rights reserved.
           </p>
+          <p className="mt-2 text-xs text-gray-400">
+            Are you a broker?{' '}
+            <a
+              href="https://www.vendormarketing.solutions/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#F97316] hover:underline"
+            >
+              VendorMarketing
+            </a>
+          </p>
         </div>
       </footer>
     </div>

@@ -157,6 +157,14 @@ export default function Home() {
             <Link href="/privacy" className="text-gray-400 hover:text-[#F97316]">Privacy</Link>
             <Link href="/terms" className="text-gray-400 hover:text-[#F97316]">Terms</Link>
             <Link href="/cookies" className="text-gray-400 hover:text-[#F97316]">Cookies</Link>
+            <Link
+              href="https://www.vendormarketing.solutions/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-[#F97316]"
+            >
+              Are you a broker? VendorMarketing
+            </Link>
           </div>
         </div>
       </footer>

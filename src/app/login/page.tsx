@@ -92,8 +92,13 @@ export default function LoginPage() {
             </Button>
             <p className="text-sm text-gray-600 text-center">
               Are you a broker?{' '}
-              <Link href="/register" className="text-blue-600 hover:underline">
-                Create an account
+              <Link
+                href="https://www.vendormarketing.solutions/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                VendorMarketing
               </Link>
             </p>
           </CardFooter>
